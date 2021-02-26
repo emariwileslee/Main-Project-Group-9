@@ -2,6 +2,7 @@
 import pytest
 import time
 from time import sleep
+import numpy as np
 from datetime import datetime
 import json
 from math import ceil
@@ -26,6 +27,11 @@ class InstaScrape():
     self.driver.get(URL)
     self.allUserList = []
     self.allUnifiedList = []
+    self.likes_List = []
+    self.comment_List = []
+    self.follower_List = []
+    self.following_List = []
+    
     self.seed = URL
     #self.allCommentList = []
     self.currDate = datetime.now()
@@ -119,6 +125,8 @@ class InstaScrape():
                 print("Coordinates(X,Y): {0}, {1}".format(X,Y))
                 #try:
                 bio = InstaScrape.bio_Grab(self)
+                #userNode.total_followers = self.followers_grab()
+                #userNode.total_following = self.following_grab()
                 #print(bio)
                 try:
                     self.driver.find_element(By.CSS_SELECTOR, "div.Nnq7C:nth-child({1}) > div:nth-child({0}) > a:nth-child(1)".format(X,Y)).click() #2D Grid(X,Y) - First "nth-child" = Y and Second "nth-child" = X. Third "nth-child" should not change
@@ -134,7 +142,7 @@ class InstaScrape():
                 if InstaScrape.trendConnectionID(bio,KEYWORD) == True or InstaScrape.trendConnectionID(InstaScrape.comment_Grab(self),KEYWORD) == True:
                     userNode.total_likes+=self.likes_grab()
                     userNode.parent_node = "user"
-                    userNode.printNode()
+                    #userNode.printNode()
                 else:
                     print("Keyword Not Found")
                 try:
@@ -186,6 +194,7 @@ class InstaScrape():
             for i in userList:
                 if((i in self.allUserList)==False):#Ensures only new usernames are recorded, no repeats
                     self.allUserList.append(i)
+                    self.likes_List.append(i)
             return likeNum    
     except NoSuchElementException:
         print("No likes found")
@@ -201,7 +210,108 @@ class InstaScrape():
         
     actions.perform()    
     self.driver.execute_script("arguments[0].scrollIntoView();",element)
-   
+  
+  def follow_scroll(self,N_Tab):
+    element = self.driver.find_element(By.CSS_SELECTOR, "body > div.RnEpo.Yx5HN > div > div > div.isgrP")
+    actions = ActionChains(self.driver)
+    actions.move_to_element(element).perform()
+    for i in range(N_Tab):
+        actions.send_keys(Keys.TAB)
+        
+    actions.perform()    
+    self.driver.execute_script("arguments[0].scrollIntoView();",element)
+  
+  def following_grab(self):
+      try:
+          followNumstr = self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(3) > a > span").text #CHANGE 'a' to 'button' IF STOPS WORKING
+          #self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(3) > a").click() 
+          if followNumstr.find(",") != -1:
+              followNumstr = followNumstr.replace(',','')
+          followNum = int(followNumstr)
+          print("Number of likes : ", followNum)
+          self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(2) > a").click() #Open likes #CHANGE 'a' to 'button' IF STOPS WORKING
+          sleep(2)
+          source = ""
+          userList = []
+          cycleNum = ceil((10*followNum) / 36) + 1 #Number of Cycles addition +1 cycle is performed for accuracy
+          #currentUser = 11
+          cycleNum = 3
+          for x in range(cycleNum):
+              InstaScrape.follow_scroll(self,10)#Set to 48 for subsequent total list transversal
+              sleep(0.1)
+              #print("CYCLE: ",x+1)
+       
+          for i in range(1,followNum):
+                  try:
+                      source = self.driver.find_element(By.CSS_SELECTOR,"div.PZuss:nth-child(1) > li:nth-child({0}) > div:nth-child(1) > div:nth-child(2)  > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > span:nth-child(1) > a:nth-child(1)".format(i)).text
+                  except NoSuchElementException:
+                      pass
+                  if((source in userList)==False):
+                      userList.append(source)
+                        
+           
+     
+                
+          print("userList Final Size: ",len(userList))
+          self.driver.find_element(By.CSS_SELECTOR, "body > div.RnEpo.Yx5HN > div > div > div:nth-child(1) > div > div:nth-child(3) > button").click()#Close likes
+          sleep(0.5)
+          #self.driver.find_element(By.CSS_SELECTOR, "div.Igw0E.IwRSH.eGOV_._4EzTm.BI4qX.qJPeX.fm1AK.TxciK.yiMZG > button:nth-child(1)").click()#Close post
+          for i in userList:
+              if((i in self.allUserList)==False):#Ensures only new usernames are recorded, no repeats
+                  self.allUserList.append(i)
+                  self.Following_List.append(i)
+          return followNum
+          
+      except:
+          print("No followers found")
+          return 0
+      
+       
+  def followers_grab(self):
+      try:
+          followNumstr = self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(2) > a > span").text #CHANGE 'a' to 'button' IF STOPS WORKING
+          #self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(2) > a").click() 
+          if followNumstr.find(",") != -1:
+              followNumstr = followNumstr.replace(',','')
+          followNum = int(followNumstr)
+          print("Number of likes : ", followNum)
+          self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(2) > a").click() #Open likes #CHANGE 'a' to 'button' IF STOPS WORKING
+          sleep(2)
+          source = ""
+          userList = []
+          cycleNum = ceil((10*followNum) / 36) + 1 #Number of Cycles addition +1 cycle is performed for accuracy
+          #currentUser = 11
+          cycleNum = 3
+          for x in range(cycleNum):
+              InstaScrape.follow_scroll(self,10)#Set to 48 for subsequent total list transversal
+              sleep(0.1)
+              #print("CYCLE: ",x+1)
+       
+          for i in range(1,followNum):
+                  try:
+                      source = self.driver.find_element(By.CSS_SELECTOR,"div.PZuss:nth-child(1) > li:nth-child({0}) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > span:nth-child(1) > a:nth-child(1)".format(i)).text
+                  except NoSuchElementException:
+                      pass
+                  if((source in userList)==False):
+                      userList.append(source)
+                        
+           
+     
+                
+          print("userList Final Size: ",len(userList))
+          self.driver.find_element(By.CSS_SELECTOR, "body > div.RnEpo.Yx5HN > div > div > div:nth-child(1) > div > div:nth-child(3) > button").click()#Close likes
+          sleep(0.5)
+          #self.driver.find_element(By.CSS_SELECTOR, "div.Igw0E.IwRSH.eGOV_._4EzTm.BI4qX.qJPeX.fm1AK.TxciK.yiMZG > button:nth-child(1)").click()#Close post
+          for i in userList:
+              if((i in self.allUserList)==False):#Ensures only new usernames are recorded, no repeats
+                  self.allUserList.append(i)
+                  self.follower_List.append(i)
+          return followNum
+          
+      except:
+          print("No followers found")
+          return 0
+      
   def comment_Grab(self):
       try:
           firstComment = self.driver.find_element(By.CSS_SELECTOR,"div.C4VMK:nth-child(2) > span").text
@@ -236,7 +346,15 @@ class InstaScrape():
   
   def returnUsernameList(self):
       return self.allUserList
-  
+  def returnLikesList(self):
+      return self.likes_List
+  def returnCommentList(self):
+      return self.comment_List
+  def returnFollowerList(self):
+      return self.follower_List
+  def returnFollowingList(self):
+      return self.following_List
+    
   def Insta_User_Branching(self, ROWS,COLUMNS,KEYWORD):#****DEPRECATED*****
     for i in self.allUserList:
         print(i)
@@ -247,6 +365,7 @@ class InstaScrape():
         except NoSuchElementException:
             pass
         print("Total of All Usernames Collected: ",len(self.allUserList))
+        
   def seedSelect(self):
       currentUrl = self.driver.current_url
       if currentUrl != self.seed :
@@ -327,6 +446,8 @@ class myThreads(threading.Thread):
       global currentLoad
       global root_node
       global node_db
+      userList = [np.array([],dtype=object),np.array([],dtype=object),np.array([],dtype=object),np.array([],dtype=object),np.array([],dtype=object)]
+      currentLoad = []
       node_db = nodeClassifier()
       print("Starting "+self.name)
       instance = InstaScrape(self.url)
@@ -335,15 +456,25 @@ class myThreads(threading.Thread):
       
       root_node = root_profile
       instance.page_nav(self.ROWS,self.COLUMNS,self.KEYWORD)# ROWS, COLUMNS
-      userList = instance.returnUsernameList()
-      #print(userList)
-      currentLoad = floor(len(userList) / 3)#CHANGE THIS 6 TO ADUST LOAD FOR RIGHT NOW
+      userList[0] = np.append(userList[0],np.asarray(instance.returnUsernameList()))
+      userList[1] = np.append(userList[1],np.asarray(instance.returnLikesList()))
+      userList[2] = np.append(userList[2],np.asarray(instance.returnLikesList()))#USED TO TEST SYSTEM CHANGE BACK TO COMMENT
+      userList[3] = np.append(userList[3],np.asarray(instance.returnFollowerList()))
+      userList[4] = np.append(userList[4],np.asarray(instance.returnFollowingList()))
+      
+      print(np.asarray(userList).shape)
+      for i in range(5):
+          print(userList[i])
+      
+      for i in range(len(userList)):  
+          currentLoad.append(floor(len(userList[i]) / 3))#CHANGE THIS 6 TO ADUST LOAD FOR RIGHT NOW
       #instance.Insta_User_Branching(3,1,KEYWORD)# ROWS, COLUMNS
       
       #sleep(5)
       print("Exiting ", self.name)
       instance.teardown_method()
       self.event_obj.set()
+      
       #self.event_obj.clear()
       #sys.exit()
       
@@ -352,7 +483,9 @@ class myThreads(threading.Thread):
       global userList
       global currentLoad
       global root_node
-      index = ((self.threadID-1) * currentLoad)
+      index = []
+      for i in range(len(currentLoad)):
+          index.append(((self.threadID-1) * currentLoad[i]))
       bufferNode = node()
       print("Starting "+self.name)
       #print(userList)
@@ -360,32 +493,51 @@ class myThreads(threading.Thread):
           #index+=1
           print("This is index", index)
           print("This is current load", currentLoad)
-      currentURL = "https://www.instagram.com/"+userList[index]+"/"
+      currentURL = "https://www.instagram.com/"+userList[1][index[1]]+"/"
       instance = InstaScrape(currentURL)
       instance.login(username,password)
       instance.seedSelect()
-      if self.threadID==1:
-          for i in userList[0:currentLoad]:
-              print(i)
-              #node_db.addNode(root_node, i,'unknown')
-              currentURL = "https://www.instagram.com/"+i+"/"
-              instance.userRedirect(currentURL)
-              bufferNode = instance.page_nav(self.ROWS,self.COLUMNS, self.KEYWORD)
-              bufferNode.parent_node = root_node
-              bufferNode.username = i
-              node_db.addNode(bufferNode)
-              
-      else:
-          for i in userList[index:(index*2)]:
-              print(i)
-              #node_db.addNode(root_node, i,'unknown')
-              currentURL = "https://www.instagram.com/"+i+"/"
-              instance.userRedirect(currentURL)
-              #instance.page_nav(self.ROWS,self.COLUMNS, self.KEYWORD)
-              bufferNode = instance.page_nav(self.ROWS,self.COLUMNS, self.KEYWORD)
-              bufferNode.parent_node = root_node
-              bufferNode.username = i
-              node_db.addNode(bufferNode)
+      #THIS IS THE ACTUAL PATHING SECTION OF THE CODE
+      for lists in range(1,len(userList)):
+          if self.threadID==1:
+              for i in userList[lists][0:currentLoad[lists]]:
+                  print(i)
+                  #node_db.addNode(root_node, i,'unknown')
+                  currentURL = "https://www.instagram.com/"+i+"/"
+                  instance.userRedirect(currentURL)
+                  bufferNode = instance.page_nav(self.ROWS,self.COLUMNS, self.KEYWORD)
+                  bufferNode.parent_node = root_node
+                  bufferNode.username = i
+                  if lists == 1:
+                      bufferNode.connection_type = 'like'
+                  elif lists == 2:
+                      bufferNode.connection_type = 'comment'
+                  elif lists == 3:
+                      bufferNode.connection_type = 'follower'
+                  elif lists == 4:
+                      bufferNode.connection_type = 'following'    
+                  node_db.addNode(bufferNode)
+                  
+          else:
+              for i in userList[lists][index[lists]:(index[lists]*2)]:
+                  print(i)
+                  #node_db.addNode(root_node, i,'unknown')
+                  currentURL = "https://www.instagram.com/"+i+"/"
+                  instance.userRedirect(currentURL)
+                  #instance.page_nav(self.ROWS,self.COLUMNS, self.KEYWORD)
+                  bufferNode = instance.page_nav(self.ROWS,self.COLUMNS, self.KEYWORD)
+                  bufferNode.parent_node = root_node
+                  bufferNode.username = i
+                  if lists == 1:
+                      bufferNode.connection_type = 'like'
+                  elif lists == 2:
+                      bufferNode.connection_type = 'comment'
+                  elif lists == 3:
+                      bufferNode.connection_type = 'follower'
+                  elif lists == 4:
+                      bufferNode.connection_type = 'following'    
+                  
+                  node_db.addNode(bufferNode)
       
       print("Exiting ", self.name)
       instance.teardown_method()
@@ -405,9 +557,19 @@ class myThreads(threading.Thread):
        global node_db
        node_db.exportNetwork()
        node_db.printNetwork()
-       print("Final user network list: ")
-       for i in userList:
-           print(i)
+       print("Final user network lists: ")
+       for i in range(len(userList)):
+          if(i==0):
+             print("\nTotal List:")
+          if(i==1):
+             print("\nLikes List:")
+          if(i==2):
+             print("\nComment List:")
+          if(i==3):
+             print("\nFollower List:")
+          if(i==4):
+             print("\nFollowing List:")
+          print(userList[i])
        sys.exit()
 
 
@@ -457,6 +619,8 @@ while not exit_flag:
         exit_flag = True
         threadArray[MAX_THREADS+1] = myThreads(MAX_THREADS+1,"Final Thread",MAX_THREADS+1,url,initialEvent)
         threadArray[MAX_THREADS+1].printGlobalUserList()
+        end = time.time()
+        print("Execution Time: ",end-start, " seconds")
         
 #threadArray[MAX_THREADS+1] = myThreads(MAX_THREADS+1,"Final Thread",MAX_THREADS+1,url,initialEvent)
 #threadArray[MAX_THREADS+1].printGlobalUserList()
@@ -471,9 +635,16 @@ while not exit_flag:
 #instance.totalUsernamePrint()
 
 #instance.teardown_method()'''
-end = time.time()
-print("Execution Time: ",end-start, " seconds")
 
+
+#Where comments are stored, change the second <ul> tag to transverse list ... increment from two up
+#div.EtaWk > ul:nth-child(1) > ul:nth-child(2) > div:nth-child(1) > li:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > h3:nth-child(1) > div:nth-child(1) > span:nth-child(1) > a:nth-child(1) 
+
+#Where followers are stored, change the <li> tag to transverse list
+#div.PZuss:nth-child(1) > li:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > span:nth-child(1) > a:nth-child(1)
+
+#Where following is stored, change the <li> tag to transverse list
+#div.PZuss:nth-child(1) > li:nth-child(1) > div:nth-child(1) > div:nth-child(2)  > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > span:nth-child(1) > a:nth-child(1)
 
 #Where nicknames on likes are stored
 #div.Igw0E.IwRSH.eGOV_.vwCYk.i0EQd:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) #Fourth "nth-child" tranverses username down
