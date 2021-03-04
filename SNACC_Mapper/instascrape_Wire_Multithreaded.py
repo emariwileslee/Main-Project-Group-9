@@ -125,7 +125,7 @@ class InstaScrape():
                 print("Coordinates(X,Y): {0}, {1}".format(X,Y))
                 #try:
                 bio = InstaScrape.bio_Grab(self)
-                #userNode.total_followers = self.followers_grab()
+                userNode.total_followers = self.followers_grab()
                 #userNode.total_following = self.following_grab()
                 #print(bio)
                 try:
@@ -228,16 +228,16 @@ class InstaScrape():
           if followNumstr.find(",") != -1:
               followNumstr = followNumstr.replace(',','')
           followNum = int(followNumstr)
-          print("Number of likes : ", followNum)
+          print("Number of following : ", followNum)
           self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(2) > a").click() #Open likes #CHANGE 'a' to 'button' IF STOPS WORKING
           sleep(2)
           source = ""
           userList = []
           cycleNum = ceil((10*followNum) / 36) + 1 #Number of Cycles addition +1 cycle is performed for accuracy
           #currentUser = 11
-          cycleNum = 3
+          #cycleNum = 3
           for x in range(cycleNum):
-              InstaScrape.follow_scroll(self,10)#Set to 48 for subsequent total list transversal
+              InstaScrape.follow_scroll(self,20)#Set to 48 for subsequent total list transversal
               sleep(0.1)
               #print("CYCLE: ",x+1)
        
@@ -268,22 +268,22 @@ class InstaScrape():
       
        
   def followers_grab(self):
-      try:
+      #try:
           followNumstr = self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(2) > a > span").text #CHANGE 'a' to 'button' IF STOPS WORKING
           #self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(2) > a").click() 
           if followNumstr.find(",") != -1:
               followNumstr = followNumstr.replace(',','')
           followNum = int(followNumstr)
-          print("Number of likes : ", followNum)
+          print("Number of followers : ", followNum)
           self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(2) > a").click() #Open likes #CHANGE 'a' to 'button' IF STOPS WORKING
           sleep(2)
           source = ""
           userList = []
           cycleNum = ceil((10*followNum) / 36) + 1 #Number of Cycles addition +1 cycle is performed for accuracy
           #currentUser = 11
-          cycleNum = 3
+          #cycleNum = 3
           for x in range(cycleNum):
-              InstaScrape.follow_scroll(self,10)#Set to 48 for subsequent total list transversal
+              InstaScrape.follow_scroll(self,40)#Set to 48 for subsequent total list transversal
               sleep(0.1)
               #print("CYCLE: ",x+1)
        
@@ -308,9 +308,9 @@ class InstaScrape():
                   self.follower_List.append(i)
           return followNum
           
-      except:
-          print("No followers found")
-          return 0
+      #except:
+          #print("No followers found")
+          #return 0
       
   def comment_Grab(self):
       try:
@@ -458,7 +458,7 @@ class myThreads(threading.Thread):
       instance.page_nav(self.ROWS,self.COLUMNS,self.KEYWORD)# ROWS, COLUMNS
       userList[0] = np.append(userList[0],np.asarray(instance.returnUsernameList()))
       userList[1] = np.append(userList[1],np.asarray(instance.returnLikesList()))
-      userList[2] = np.append(userList[2],np.asarray(instance.returnLikesList()))#USED TO TEST SYSTEM CHANGE BACK TO COMMENT
+      userList[2] = np.append(userList[2],np.asarray(instance.returnCommentList()))#USED TO TEST SYSTEM CHANGE BACK TO COMMENT
       userList[3] = np.append(userList[3],np.asarray(instance.returnFollowerList()))
       userList[4] = np.append(userList[4],np.asarray(instance.returnFollowingList()))
       
@@ -473,7 +473,7 @@ class myThreads(threading.Thread):
       #sleep(5)
       print("Exiting ", self.name)
       instance.teardown_method()
-      self.event_obj.set()
+      #self.event_obj.set()
       
       #self.event_obj.clear()
       #sys.exit()
