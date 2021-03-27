@@ -21,6 +21,8 @@ function processData(allText) {
 // alert(lines);
 }
 
+
+
 function findSubNetwork(selected, edgeArray){
     var selectedsNetwork = []
     for (var i = 0; i < edgeArray.length; i++){
@@ -39,7 +41,6 @@ function addToPeopleIdDict(name, nodeArray){
     if (people_ids[name] == undefined){
         people_ids[name] = id_index
         nodeArray.push({id: id_index, label: name, group: id_index % 5})
-        console.log(name)
         id_index += 1 
 
     } 
@@ -55,7 +56,6 @@ function readFile(input) {
   reader.readAsText(file);
   
   reader.onload = function() {
-
     var myobj = document.getElementById("imput");
     myobj.remove();
 
@@ -105,19 +105,29 @@ function readFile(input) {
         edges: edges
     };
     var options = {
-        physics: {enabled : false},
+        physics: {
+            enabled: false,
+            solver: "repulsion",
+            repulsion: {
+                nodeDistance: 400 // Put more distance between the nodes.
+            },
+        },
         edges: {
             arrows: {
                 to:{
                     enabled: true,
                     scaleFactor: .25
                 }
-            }
+            },
+            length: 400
         }
     };
 
+
+
     // initialize your network!
     var network = new vis.Network(container, data, options);
+    network.stabilize();
 
     network.on('click',function(properties) {
         var nodeId = properties.nodes[0];
@@ -133,7 +143,7 @@ function readFile(input) {
     var lastDoubleClicked = -1;
     network.on('doubleClick', function(properties){ 
 
-  // Some dazzling stuff happens be here
+  //Double click to get subnetwork. 
         var nodeId = properties.nodes[0];
         
         if(PersonsFollowers[nodeId] != undefined){
