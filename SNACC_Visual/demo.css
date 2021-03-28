@@ -1,13 +1,14 @@
 body{
     margin-right: 0;
     margin-left: 0;
+    overflow-x: hidden; 
 }
 
 #imputdiv{
   margin: 0;
   position: absolute;
   top: 50%;
-  left: 50%;
+  margin-left: 50%;
   -ms-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
   text-align: center;
@@ -43,6 +44,9 @@ body{
 #legend{
     position: absolute;
 }
+#logo{
+    margin-left: 47%;
+}
 
 .custom-menu {
     display: none;
@@ -73,7 +77,7 @@ body{
 
 /* Dropdown Button */
 .dropbtn {
-  background-color: #4CAF50;
+  background-color: #00adb5;
   color: white;
   padding: 16px;
   font-size: 16px;
@@ -111,4 +115,4 @@ body{
 .dropdown:hover .dropdown-content {display: block;}
 
 /* Change the background color of the dropdown button when the dropdown content is shown */
-.dropdown:hover .dropbtn {background-color: #3e8e41;}
+.dropdown:hover .dropbtn {background-color: #009dA5;}
