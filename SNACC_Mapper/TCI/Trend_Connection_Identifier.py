@@ -36,6 +36,8 @@ class TCI():
     def __init__(self):
         self.filename = 'TCI/GoogleNews-vectors-negative300.bin'
         self.sample_list = []
+        self.sample_list_sen = []
+        self.np_centroid = np.array([])
         self.model = KeyedVectors.load_word2vec_format(self.filename,binary=True)#Word2Vec(self.filename,min_count=1)
         self.vector_size = self.model.vector_size
         self.NUM_CLUSTERS = 3
@@ -51,11 +53,13 @@ class TCI():
         
     def addSample(self,sample_string):
         sample_string = sample_string.translate(str.maketrans({key: None for key in string.punctuation}))
+        self.sample_list_sen.append(sample_string)
         buffer_list = word_tokenize(sample_string)#list(sample_string.split(" "))
         for i in buffer_list:
             internal_buffer = i.lower()
-            if internal_buffer not in stopwords.words('english') and internal_buffer not in self.sample_list:
-                self.sample_list.append(i)
+            if internal_buffer not in stopwords.words('english') :#and internal_buffer not in self.sample_list:
+                self.sample_list.append(internal_buffer)
+        return self.sample_list
         #self.sample_list.append(buffer_list)
     
     def sampleTrendMean(self):
@@ -67,8 +71,10 @@ class TCI():
             print("No sample detected !")
             return np.zeros(self.vector_size)
         else:
-            mean = np.array(mean).mean(axis=0)
-            return np.average(mean)
+            #mean = np.array(mean).mean(axis=0)
+            #mean = mean.reshape(1,300)
+            #print(mean.reshape(1,300).shape)
+            return mean#np.average(mean)
     
     def sampleVectorMean(self,sample_string):
         sample_string = sample_string.translate(str.maketrans({key: None for key in string.punctuation}))
@@ -77,28 +83,36 @@ class TCI():
         mean = []
         for i in buffer_list:
             internal_buffer = i.lower()
-            if internal_buffer not in stopwords.words('english') and internal_buffer not in self.sample_list:
-                final_list.append(i)
+            if internal_buffer not in stopwords.words('english'):
+                final_list.append(internal_buffer)
         for word in final_list:
             if word in self.model.vocab:
                 mean.append(self.model.get_vector(word))
         if not mean:
-            print("No sample detected !")
+            print("No sample detected !1")
             return np.zeros(self.vector_size) 
         else:
-            return mean
-    
-    def test(self,sample_string):
-        mean = []
-        for word in self.sample_list:
-            if word in self.model.vocab:
-                mean.append(self.model.get_vector(word))
-        if not mean:
-            print("No sample detected !")
-            return np.zeros(self.vector_size)
-        else:
             mean = np.array(mean).mean(axis=0)
+            mean = mean.reshape(1,300)
             return mean
+        
+    def sampleSenTrendMean(self):
+        np_score_list = np.empty((0,300))
+        for i in range(len(self.sample_list_sen)):
+            #print('Current string value being added from sample list: ', self.sample_list_sen[i])
+            try:
+                np_score_list = np.append(np_score_list,self.sampleVectorMean(self.sample_list_sen[i]),axis=0)
+            except:
+                pass
+        
+        self.np_centroid = np.mean(np_score_list,axis=0)
+        return self.np_centroid
+        
+    def distanceCentroid(self,test_string):
+        ts_vector = self.sampleVectorMean(test_string).reshape(300,)
+        
+        distance = np.linalg.norm(self.np_centroid - ts_vector)
+        return distance
     
     '''def kmeans(self):
         words = list(self.model.vocab)
