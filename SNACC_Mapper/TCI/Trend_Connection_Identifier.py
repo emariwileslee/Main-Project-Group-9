@@ -52,14 +52,18 @@ class TCI():
         #self.TF_IDF.fit_transform(self.model.vocab)
         
     def addSample(self,sample_string):
-        sample_string = sample_string.translate(str.maketrans({key: None for key in string.punctuation}))
-        self.sample_list_sen.append(sample_string)
-        buffer_list = word_tokenize(sample_string)#list(sample_string.split(" "))
-        for i in buffer_list:
-            internal_buffer = i.lower()
-            if internal_buffer not in stopwords.words('english') :#and internal_buffer not in self.sample_list:
-                self.sample_list.append(internal_buffer)
-        return self.sample_list
+        try:
+            sample_string = sample_string.translate(str.maketrans({key: None for key in string.punctuation}))
+            self.sample_list_sen.append(sample_string)
+            buffer_list = word_tokenize(sample_string)#list(sample_string.split(" "))
+            for i in buffer_list:
+                internal_buffer = i.lower()
+                if internal_buffer not in stopwords.words('english') :#and internal_buffer not in self.sample_list:
+                    self.sample_list.append(internal_buffer)
+            return self.sample_list
+        except:
+            #print('EXCEPTION ----- STRING IS NONE !')
+            pass
         #self.sample_list.append(buffer_list)
     
     def sampleTrendMean(self):
