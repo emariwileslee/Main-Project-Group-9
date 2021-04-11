@@ -6,6 +6,7 @@ Created on Wed Apr  7 10:00:54 2021
 """
 import sys
 import string
+import numpy as np
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
@@ -13,6 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager
 from datetime import datetime
@@ -24,7 +26,10 @@ from trend_node import node
 
 class InstaScrape():
   def __init__(self,URL):
-    self.driver =  webdriver.Chrome(ChromeDriverManager().install())
+    self.chrome_options = Options()
+    self.chrome_options.add_argument("--headless")
+    self.chrome_options.add_argument("--disable-gpu")
+    self.driver =  webdriver.Chrome(ChromeDriverManager().install())#,options=self.chrome_options)
     self.driver.get(URL)
     self.allUserList = []
     self.allUnifiedList = []
@@ -47,6 +52,7 @@ class InstaScrape():
   
   def login(self,USERNAME,PASSWORD):#This is used to sign into instagram with a user account to allow greater viewing privelege
    self.driver.get("https://www.instagram.com/accounts/login/")
+   sleep(1)
    element_present = EC.presence_of_element_located((By.NAME,"username"))
    WebDriverWait(self.driver,10).until(element_present)
    if self.driver.find_element(By.NAME, "username"):
@@ -63,7 +69,10 @@ class InstaScrape():
         try:
             WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/section/main/div/div/div/div/button"))).click()
         except:
-            print("Could not complete login")
+            try:
+                self.login(USERNAME, PASSWORD)
+            except:
+                print("Could not complete login")
    else:
         #Selects the login button at the root page
         element = self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > nav > div._8MQSO.Cx7Bp > div > div > div.ctQZg > div > span > a:nth-child(1) > button")
@@ -91,7 +100,10 @@ class InstaScrape():
         try:
             WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/section/main/div/div/div/div/button"))).click()
         except:
-            print("Could not complete login")
+            try:
+                self.login(USERNAME, PASSWORD)
+            except:
+                print("Could not complete login")
     
   def logout(self):#This is used to log out of a user account
     #This clicks the profile menu
@@ -144,8 +156,13 @@ class InstaScrape():
                                          
                 sleep(1)
                 if (self.trendConnectionID(bio,KEYWORD) == True or self.trendConnectionID(self.comment_Grab(),KEYWORD) == True) and empty_flag == False:
+                    sleep(0.5)
                     trend_related_flag = True
-                    userNode.total_likes+=self.likes_grab()
+                    likes_buffer = self.likes_grab()
+                    if(likes_buffer==0):
+                        print("Above Likes Threshold !!!")
+                        trend_related_flag = False
+                    userNode.total_likes+=likes_buffer
                     userNode.parent_node = "user"
                     try:
                         userNode.captions.append(self.comment_Grab())
@@ -160,17 +177,25 @@ class InstaScrape():
                     pass
                 sleep(0.5)
     if trend_related_flag == True:
+        userNode.child_connections[0] = np.append(userNode.child_connections[0],np.asarray(self.returnUsernameList()))
+        userNode.child_connections[1] = np.append(userNode.child_connections[1],np.asarray(self.returnLikesList()))
+        userNode.child_connections[2] = np.append(userNode.child_connections[2],np.asarray(self.returnCommentList()))
+        userNode.child_connections[3] = np.append(userNode.child_connections[3],np.asarray(self.returnFollowerList()))
+        userNode.child_connections[4] = np.append(userNode.child_connections[4],np.asarray(self.returnFollowingList()))
         return userNode
     else:
         return False
 
   def likes_grab(self):#Navigate to post then call this function after
     try:
-        likeNumstr = self.driver.find_element(By.CSS_SELECTOR, "div.Nm9Fw:nth-child(1) > a:nth-child(1) > span:nth-child(1)").text #CHANGE 'a' to 'button' IF STOPS WORKING
+        try:
+            likeNumstr = self.driver.find_element(By.CSS_SELECTOR, "div.Nm9Fw:nth-child(1) > a:nth-child(1) > span:nth-child(1)").text #CHANGE 'a' to 'button' IF STOPS WORKING
+        except:
+            likeNumstr = self.driver.find_element(By.CSS_SELECTOR, "div.Nm9Fw:nth-child(1) > button:nth-child(1) > span:nth-child(1)").text
         if likeNumstr.find(",") != -1:
             likeNumstr = likeNumstr.replace(',','')
         likeNum = int(likeNumstr)
-        if likeNum > 50:#FOR DEMONSTRATION, TAKE OUT OF PRODUCTION CODE
+        if likeNum > 150:#FOR DEMONSTRATION, TAKE OUT OF PRODUCTION CODE
             return 0
             pass
         else:
@@ -208,7 +233,7 @@ class InstaScrape():
                     self.allUserList.append(i)
                     self.likes_List.append(i)
             return likeNum    
-    except NoSuchElementException:
+    except: #NoSuchElementException:
         #print("No likes found")
         return 0
         #self.driver.find_element(By.CSS_SELECTOR, "body > div._2dDPU.CkGkG > div.Igw0E.IwRSH.eGOV_._4EzTm.BI4qX.qJPeX.fm1AK.TxciK.yiMZG > button").click()#Close post
@@ -216,6 +241,7 @@ class InstaScrape():
   def likes_scroll(self,N_Tab): #N_Tab is number of times to press, set to 66 for total list transversal
     element = self.driver.find_element(By.CSS_SELECTOR, "body > div.RnEpo.Yx5HN > div > div > div.Igw0E.IwRSH.eGOV_.vwCYk.i0EQd > div")
     actions = ActionChains(self.driver)
+    actions.reset_actions()
     actions.move_to_element(element).perform()
     for i in range(N_Tab):
         actions.send_keys(Keys.TAB)

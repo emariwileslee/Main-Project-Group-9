@@ -26,8 +26,12 @@ from nltk.cluster import KMeansClusterer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import nltk
-nltk.download('stopwords',quiet=log_flag)
-nltk.download('punkt',quiet=log_flag)
+import os
+nltk_data_loc=r'C:\Users\emari\Documents\Github-Projects\SNACC\SNACC_Mapper\TCI\nltk_data' 
+os.environ['NLTK_DATA'] = nltk_data_loc
+#print("downloading stopwords and punkt")
+#nltk.download('stopwords',download_dir=nltk_data_loc)#,quiet=log_flag)
+#nltk.download('punkt',download_dir=nltk_data_loc)#,quiet=log_flag)
 import numpy as np
 
 import time
