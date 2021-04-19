@@ -21,18 +21,29 @@ import time
 
 import os
 import wget
+import sys
+sys.path.append("..\SNACC_Mapper\.")
+from trend_node import node
+from trend_node import nodeClassifier
 
-def get_post_data(card):
-    username = card.find_element_by_xpath("/html/body/div[5]/div[2]/div/article/header/div[2]/div[1]/div[1]/span/a").text
+global node_db 
+node_db = nodeClassifier()
+
+def get_post_data(card,input_node):
+    bufferNode = input_node
     
+    username = card.find_element_by_xpath("/html/body/div[5]/div[2]/div/article/header/div[2]/div[1]/div[1]/span/a").text
+    bufferNode.username = username
     try:
         postdate = card.find_element_by_xpath('.//time').get_attribute('datetime')
     except NoSuchElementException:
         return
     caption = card.find_element_by_xpath("/html/body/div[5]/div[2]/div/article/div[3]/div[1]/ul/div/li/div/div/div[2]/span").text
+    bufferNode.captions.append(caption)
     try:
         like_count = card.find_element_by_xpath("/html/body/div[5]/div[2]/div/article/div[3]/section[2]/div/div/a").text
         result = like_count
+        bufferNode.total_likes+=result
         
     except NoSuchElementException:
         try:
