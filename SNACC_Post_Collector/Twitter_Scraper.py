@@ -24,8 +24,8 @@ global node_db
 node_db = nodeClassifier()
 
 class Twitter_Scrape():
-    def get_tweet_data(card,input_node):
-        bufferNode = input_node
+    def get_tweet_data(card):
+        bufferNode = node()
         username = card.find_element_by_xpath('./div[2]/div[1]//span').text
         bufferNode.username = username
         try:
@@ -48,6 +48,7 @@ class Twitter_Scrape():
 
 
         tweet = (username, postdate, caption, reply_count, retweet_count, like_count)
+        node_db.addNode(bufferNode)
         return tweet
 
 
@@ -172,11 +173,11 @@ class Twitter_Scrape():
             card = cards[i]
 
             try:
-                tweet = get_toptweet_data(card, i, input_node)
+                tweet = get_toptweet_data(card, i)
                 top_data.append(tweet)
             except NoSuchElementException:
                 i+=1
-                tweet = get_toptweet_data(card, i, input_node)
+                tweet = get_toptweet_data(card, i)
                 top_data.append(tweet)
 
         sleep(2)

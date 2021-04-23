@@ -30,8 +30,11 @@ global node_db
 node_db = nodeClassifier()
 
 class Instagram_Scraper():
-    def get_post_data(card,input_node):
-        bufferNode = input_node
+    def __init(self):
+        self.driver = webdriver.Chrome(ChromeDriverManager().install())
+        self.get_post_data()
+    def get_post_data(card):
+        bufferNode = node()
 
         username = card.find_element_by_xpath("/html/body/div[5]/div[2]/div/article/header/div[2]/div[1]/div[1]/span/a").text
         bufferNode.username = username
@@ -55,6 +58,7 @@ class Instagram_Scraper():
                 pass
 
         post = (username, caption, result, postdate)
+        node_db.addNode(bufferNode)
         return post
 
     sleep(3)
@@ -107,7 +111,7 @@ class Instagram_Scraper():
     for n in range(20):
         page_cards = driver.find_elements_by_xpath('//div[@role="dialog"]')
         for card in page_cards:
-            post = get_post_data(card ,input_node)
+            post = get_post_data(card)
             data.append(post)
             time.sleep(2)
             click_next = driver.find_element_by_css_selector("body > div._2dDPU.CkGkG > div.EfHg9 > div > div > a._65Bje.coreSpriteRightPaginationArrow").click()
