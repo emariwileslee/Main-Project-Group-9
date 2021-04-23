@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[12]:
 
 
 import re
@@ -100,7 +100,7 @@ class Instagram_Scraper():
         searchbox.send_keys(Keys.ENTER) 
         time.sleep(2)
         try:
-            search_input = self.driver.find_element_by_xpath('/html/body/div[5]/div[2]/div/article/header/div[2]/div[1]/div[1]/span/a').click()
+            search_input = self.driver.find_element_by_xpath('/html/body/div[1]/section/main/article/div[1]/div/div/div[1]/div[1]/a/div/div[2]').click()
         except NoSuchElementException:
             search_input = self.driver.find_element_by_xpath('/html/body/div[1]/section/main/article/div[1]/div/div/div[1]/div[1]/a').click()
         sleep(3)
@@ -151,5 +151,12 @@ class Instagram_Scraper():
             #save_as = os.path.join(path, keyword[1:] + str(counter) + '.jpg')
             #wget.download(image, save_as)
             counter += 1
-
+            
 instance = Instagram_Scraper()
+
+
+# In[ ]:
+
+
+
+
