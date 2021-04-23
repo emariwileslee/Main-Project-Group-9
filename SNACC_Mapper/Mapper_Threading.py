@@ -12,6 +12,7 @@ import time
 from math import floor
 sys.path.append(".")
 from Instascrape import InstaScrape
+from TweetScrape import TweetScrape
 from trend_node import node
 from trend_node import nodeClassifier
 sys.path.append(".\TCI\.")
@@ -19,10 +20,12 @@ sys.path.append(".\TCI\.")
 #print("Program Started 69")
        
 class myThreads(threading.Thread):
-   def __init__(self, threadID, name, counter, url, event):
+   def __init__(self, threadID, name, counter, url, event, plat_flag=True,op_type=True):
       #print("Thread Initialized")
       threading.Thread.__init__(self)
       self.threadID = threadID
+      self.operation_flag = op_type
+      self.platform_flag = plat_flag
       self.name = name
       self.counter = counter
       self.url = url
@@ -30,11 +33,11 @@ class myThreads(threading.Thread):
       #self.currentLoad = 0
       self.ROWS = 2
       self.COLUMNS = 1
-      self.KEYWORD = ["FAU","Orienation","Owls","Boca","Florida","Atlantic","University"]
+      self.KEYWORD = ["FAU","Orienation","Owls","Boca","Florida","Atlantic","University"] 
       self.event_obj = event
       #self.startFlag = self.event_obj.wait()
-      self.username = "jksnacker00"#'ewltest99'#"jksnacker00"#"snackertestunit00"
-      self.password = "Ca4SraTX3pvYuw8"#"ESctQtHDKxa56we"
+      self.username = ['sionjastro','eldiadvit','iquensenor']#'ewltest99'#"jksnacker00"#"snackertestunit00"#'jksnacker00'
+      self.password = ['^2pNVT%ttzuoX','E$m88McNMQ6Q','ihZ$%U5QiPYr']#"ESctQtHDKxa56we"#'ESctQtHDKxa56we'
       print("ACTIVE THREADS CURRENTLY: ", threading.active_count())
     
    def run(self):
@@ -57,8 +60,13 @@ class myThreads(threading.Thread):
       currentLoad = []
       node_db = nodeClassifier(output_location)
       print("Starting "+self.name)
-      instance = InstaScrape(self.url)
-      instance.login(self.username,self.password)
+      if self.operation_flag == True and self.platform_flag == True:
+          instance = InstaScrape(self.url)
+      elif self.operation_flag == True and self.platform_flag == False:
+          instance = TweetScrape(self.url)
+      else:
+          pass
+      instance.login(self.username[0],self.password[0])
       instance.seedSelect()
       #Instagram Specific
       #self.parent_node = root_profile
@@ -68,20 +76,14 @@ class myThreads(threading.Thread):
       bufferNode.parent_node = self.parent_node
       bufferNode.username = root_profile
       bufferNode.connection_type = 'ROOT'
-      node_db.addNode(bufferNode)
+      node_db.addNode(bufferNode)      
       
-      initialUserList[0] = np.append(initialUserList[0],np.asarray(instance.returnUsernameList()))
-      initialUserList[1] = np.append(initialUserList[1],np.asarray(instance.returnLikesList()))
-      initialUserList[2] = np.append(initialUserList[2],np.asarray(instance.returnCommentList()))#USED TO TEST SYSTEM CHANGE BACK TO COMMENT
-      initialUserList[3] = np.append(initialUserList[3],np.asarray(instance.returnFollowerList()))
-      initialUserList[4] = np.append(initialUserList[4],np.asarray(instance.returnFollowingList()))
+      #print(np.asarray(initialUserList).shape)
+      for i in range(node_db.node_list[0].child_connections):
+          print(node_db.node_list[0].child_connections[i])
       
-      print(np.asarray(initialUserList).shape)
-      for i in range(5):
-          print(initialUserList[i])
-      
-      for i in range(len(initialUserList)):  
-          currentLoad.append(floor(len(initialUserList[i]) / 3))#CHANGE THIS 6 TO ADUST LOAD FOR RIGHT NOW
+      for i in range(node_db.node_list[0].child_connections):  
+          currentLoad.append(floor(len(node_db.node_list[0].child_connections[i]) / 3))#CHANGE THIS 6 TO ADUST LOAD FOR RIGHT NOW
       #instance.Insta_User_Branching(3,1,KEYWORD)# ROWS, COLUMNS
       
       #sleep(5)
@@ -112,13 +114,19 @@ class myThreads(threading.Thread):
           #index+=1
           print("This is index", index)
           print("This is current load", currentLoad)
-      currentURL = "https://www.instagram.com/"+initialUserList[1][index[1]]+"/"#REMEMBER TO CHANGE THIS LATER
-      instance = InstaScrape(currentURL)
-      instance.login(self.username,self.password)
+      if self.operation_flag == True and self.platform_flag == True:
+          currentURL = "https://www.instagram.com/"+node_db.node_list[0].child_connections[1][index[1]]+"/"#REMEMBER TO CHANGE THIS LATER
+          instance = InstaScrape(currentURL)
+      elif self.operation_flag == True and self.platform_flag == False:
+          currentURL = "https://www.twitter.com/"+node_db.node_list[0].child_connections[1][index[1]]+"/"#REMEMBER TO CHANGE THIS LATER
+          instance = TweetScrape(currentURL)
+      else:
+          pass
+      instance.login(self.username[(self.threadID-1)],self.password[(self.threadID-1)])
       instance.seedSelect()
       #THIS IS THE ACTUAL PATHING SECTION OF THE CODE
-      for lists in range(1,len(initialUserList)):
-          self.InstagramNodeCollection(instance, node_db.node_list[0].child_connections,index, lists)
+      for lists in range(1,len(node_db.node_list[0].child_connections)):
+          self.MapperNodeCollection(instance, node_db.node_list[0].child_connections,index, lists)
       
       print("Layer 1 Connections Complete in Thread {0}".format(self.threadID))
       threadQueue+=1
@@ -160,7 +168,7 @@ class myThreads(threading.Thread):
           index = index_buffer
           print("Thread {3}: This is the position in the node_list: {0}\n This is threadQueue: {1}\n This is threadCounter: {2}\n".format(lists,threadQueue,threadCounter,self.threadID))
           
-          self.InstagramNodeCollection(instance, node_db.node_list[lists].child_connections,index, lists)
+          self.MapperNodeCollection(instance, node_db.node_list[lists].child_connections,index, lists)
           #print("Instagram Node Collection PASSED !!!")
           threadQueue+=1
           threadCounter = 0
@@ -176,7 +184,7 @@ class myThreads(threading.Thread):
               #length_buffer = len(node_db.node_list)
               threadQueue+=1
               threadCounter=0
-              while(threadQueue<3):
+              while(threadQueue<3):#DONT DO THIS VERY BAD BUSY WAIT !!! 
                   pass
               threadCounter+=1
               if threadCounter>3:
@@ -195,7 +203,7 @@ class myThreads(threading.Thread):
       #instance.teardown_method()
       #sys.exit()
    
-   def InstagramNodeCollection(self,driver_instance, username_list,index,lists):
+   def MapperNodeCollection(self,driver_instance, username_list,index,lists):
        global tci_inst
        global node_db
        bufferNode = node()
@@ -205,8 +213,12 @@ class myThreads(threading.Thread):
                   #print("I got here too1, ThreadID: {0}".format(self.threadID))
                   #print(i)
                   #node_db.addNode(root_node, i,'unknown')
-                  currentURL = "https://www.instagram.com/"+i+"/"
-                  driver_instance.userRedirect(currentURL)
+                  if self.operation_flag == True and self.platform_flag == True:
+                      currentURL = "https://www.instagram.com/"+i+"/"
+                      driver_instance.userRedirect(currentURL)
+                  elif self.operation_flag == True and self.platform_flag == False:
+                      currentURL = "https://www.twitter.com/"+i+"/"
+                      driver_instance.userRedirect(currentURL)
                   bufferNode = driver_instance.page_nav(self.ROWS,self.COLUMNS, self.KEYWORD)
                   if bufferNode != False:
                       bufferNode.parent_node = self.parent_node
@@ -228,13 +240,16 @@ class myThreads(threading.Thread):
                       pass
                   
        else:
-              for i in username_list[lists][index[lists]:(index[lists]*2)]:
+              for i in username_list[lists][index[lists]:(index[lists]*2)]:#CHECK OUT THIS LINE MAYBE BUG !!!
                   #print("I got here too2, ThreadID: {0}".format(self.threadID))
                   #print(i)
                   #node_db.addNode(root_node, i,'unknown')
-                  currentURL = "https://www.instagram.com/"+i+"/"
-                  driver_instance.userRedirect(currentURL)
-                  #instance.page_nav(self.ROWS,self.COLUMNS, self.KEYWORD)
+                  if self.operation_flag == True and self.platform_flag == True:
+                      currentURL = "https://www.instagram.com/"+i+"/"
+                      driver_instance.userRedirect(currentURL)
+                  elif self.operation_flag == True and self.platform_flag == False:
+                      currentURL = "https://www.twitter.com/"+i+"/"
+                      driver_instance.userRedirect(currentURL)
                   bufferNode = driver_instance.page_nav(self.ROWS,self.COLUMNS, self.KEYWORD)
                   if bufferNode != False:
                       bufferNode.parent_node = self.parent_node
@@ -275,7 +290,7 @@ class myThreads(threading.Thread):
        print("Initial text data: ",testtext)
        #print("This is the distance of your vector from the initial centroid(SENTENCE-CENTROID): ",tci_inst.distanceCentroid(testtext))
        print("\n\nFinal user network lists: ")
-       for i in range(len(initialUserList)):
+       for i in range(len(node_db.node_list[0].child_connections)):
           if(i==0):
              print("\nTotal List:")
           if(i==1):
@@ -286,7 +301,7 @@ class myThreads(threading.Thread):
              print("\nFollower List:")
           if(i==4):
              print("\nFollowing List:")
-          print(initialUserList[i])
+          print(node_db.node_list[0].child_connections[i])
        sys.exit()
 
 #print("Program Started 69")
@@ -301,17 +316,19 @@ output_location = r'C:\Users\emari\Documents\Github-Projects\SNACC\SNACC_Mapper\
 START_THREADS = threading.active_count()
 MAX_THREADS = 3#Starts at 0, Must be at least 1
 MAX_THREADS += 1
+OPERATION_MODE = True #True is Mapper || False is Post Collector
+PLATFORM_MODE = True #True is Instagram || False is Twitter
 exit_flag = False
 
 initialEvent = threading.Event()
 threadArray = np.empty((MAX_THREADS+2,),dtype=object)
-threadArray[0] = myThreads(0,"Thread-0",0,url,initialEvent)
+threadArray[0] = myThreads(0,"Thread-0",0,url,initialEvent,PLATFORM_MODE,OPERATION_MODE)
 threadArray[0].start()
 print("Thread 0 Started")
 for i in range(1,MAX_THREADS):
     #print("I got here")
     initialEvent.wait()
-    threadArray[i] = myThreads(i,"Thread-%d"%i,i,url,initialEvent)
+    threadArray[i] = myThreads(i,"Thread-%d"%i,i,url,initialEvent,PLATFORM_MODE,OPERATION_MODE)
     print("Creating ", threadArray[i].name)
     #print("Initial thread complete")
     threadArray[i].start()
@@ -321,7 +338,7 @@ for i in range(1,MAX_THREADS):
 while not exit_flag:
     if not threading.active_count()>START_THREADS:
         exit_flag = True
-        threadArray[MAX_THREADS+1] = myThreads(MAX_THREADS+1,"Final Thread",MAX_THREADS+1,url,initialEvent)
+        threadArray[MAX_THREADS+1] = myThreads(MAX_THREADS+1,"Final Thread",MAX_THREADS+1,url,initialEvent,PLATFORM_MODE,OPERATION_MODE)
         threadArray[MAX_THREADS+1].printGlobalinitialUserList()
         end = time.time()
         print("Execution Time: ",end-start, " seconds")
