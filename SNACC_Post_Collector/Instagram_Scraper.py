@@ -7,6 +7,7 @@
 import re
 import csv
 import emoji
+import string
 from getpass import getpass
 from time import sleep
 from selenium.webdriver.common.keys import Keys
@@ -27,7 +28,7 @@ from trend_node import node
 from trend_node import nodeClassifier
 
 global node_db 
-node_db = nodeClassifier(r'C:\Users\emari\Documents\Github-Projects\SNACC\SNACC_Mapper\Output')
+node_db = nodeClassifier(r'C:\Users\emari\Documents\Github-Projects\SNACC\SNACC_Post_Collector')
 
 class Instagram_Scraper():
     def __init__(self):
@@ -40,18 +41,24 @@ class Instagram_Scraper():
     def get_post_data(self,card):
         bufferNode = node()
 
-        username = card.find_element_by_xpath("/html/body/div[5]/div[2]/div/article/header/div[2]/div[1]/div[1]/span/a").text
+        username = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[5]/div[2]/div/article/header/div[2]/div[1]/div[1]/span/a"))).text#card.find_element_by_xpath("/html/body/div[5]/div[2]/div/article/header/div[2]/div[1]/div[1]/span/a").text
         bufferNode.username = username
+        bufferNode.parent_node = username
+        bufferNode.connection_type = 'ROOT'
         try:
             postdate = card.find_element_by_xpath('.//time').get_attribute('datetime')
         except NoSuchElementException:
             return
         caption = card.find_element_by_xpath("/html/body/div[5]/div[2]/div/article/div[3]/div[1]/ul/div/li/div/div/div[2]/span").text
         bufferNode.captions.append(caption)
+        result = 0
         try:
-            like_count = card.find_element_by_xpath("/html/body/div[5]/div[2]/div/article/div[3]/section[2]/div/div/a").text
+            like_count = card.find_element_by_xpath("/html/body/div[5]/div[2]/div/article/div[3]/section[2]/div/div/a/span").text#card.find_element_by_xpath("/html/body/div[5]/div[2]/div/article/div[3]/section[2]/div/div/a").text
             result = like_count
-            bufferNode.total_likes+=result
+            if ',' in result:
+                result = result.replace(',','')
+                #result = result.split(' ')
+            bufferNode.total_likes+=int(result)
 
         except NoSuchElementException:
             try:
@@ -98,16 +105,16 @@ class Instagram_Scraper():
         time.sleep(1)
         #doesnt always send have to click twice
         searchbox.send_keys(Keys.ENTER) 
-        time.sleep(2)
+        #time.sleep()
         try:
-            search_input = self.driver.find_element_by_xpath('/html/body/div[1]/section/main/article/div[1]/div/div/div[1]/div[1]/a/div/div[2]').click()
+            search_input = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div.Nnq7C:nth-child(1) > div:nth-child(1) > a:nth-child(1)"))).click()
         except NoSuchElementException:
-            search_input = self.driver.find_element_by_xpath('/html/body/div[1]/section/main/article/div[1]/div/div/div[1]/div[1]/a').click()
+            search_input = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div.Nnq7C:nth-child(1) > div:nth-child(1) > a:nth-child(1)"))).click()
         sleep(3)
 
         data = []
 
-        for n in range(20):
+        for n in range(1):#CHANGE THIS FOR ROWS
             page_cards = self.driver.find_elements_by_xpath('//div[@role="dialog"]')
             for card in page_cards:
                 post = self.get_post_data(card)

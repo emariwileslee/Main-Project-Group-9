@@ -12,7 +12,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager
-
+import string
 import os
 import wget
 import sys
@@ -21,13 +21,14 @@ from trend_node import node
 from trend_node import nodeClassifier
 
 global node_db 
-node_db = nodeClassifier(r'C:\Users\emari\Documents\Github-Projects\SNACC\SNACC_Mapper\Output')
+node_db = nodeClassifier(r'C:\Users\emari\Documents\Github-Projects\SNACC\SNACC_Post_Collector')
 
 class Twitter_Scrape():
     def __init__(self):
         self.driver = webdriver.Chrome(ChromeDriverManager().install())
         self.login()
         self.navigate()
+        node_db.exportNetwork()
         #self.get_toptweet_data(card, i)
         #self.topusers()
         
@@ -35,7 +36,11 @@ class Twitter_Scrape():
         bufferNode = node()
         
         username = card.find_element_by_xpath('./div[2]/div[1]//span').text
-        bufferNode.username = username
+        handle = card.find_element_by_xpath('./div[2]/div[1]//span[contains(text(), "@")]').text
+        handle = handle.replace('@','')
+        bufferNode.username = handle
+        bufferNode.parent_node = handle
+        bufferNode.connection_type = 'ROOT'
         try:
             postdate = card.find_element_by_xpath('.//time').get_attribute('datetime')
         except NoSuchElementException:
@@ -45,7 +50,22 @@ class Twitter_Scrape():
         caption = comment + responding 
         bufferNode.captions.append(caption)
         like_count = card.find_element_by_xpath('.//div[@data-testid="like"]').text
-        bufferNode.total_likes+=int(like_count)
+        if 'K' in like_count:
+            like_buffer = like_count
+            like_buffer = like_buffer.replace('K','')
+            like_buffer = like_buffer.split('.')
+            print(like_buffer)
+            try:
+                like_int = like_buffer[0] + like_buffer[1]+'00'
+            except:
+                like_int = like_buffer[0] + '000'
+            bufferNode.total_likes+=int(like_int)   
+        else:
+            try:
+                bufferNode.total_likes+=int(like_count)
+            except:
+                pass
+            
         reply_count = card.find_element_by_xpath('.//div[@data-testid="reply"]').text
         retweet_count = card.find_element_by_xpath('.//div[@data-testid="retweet"]').text
         
