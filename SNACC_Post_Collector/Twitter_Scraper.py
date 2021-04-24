@@ -24,10 +24,10 @@ global node_db
 node_db = nodeClassifier(r'C:\Users\emari\Documents\Github-Projects\SNACC\SNACC_Post_Collector')
 
 class Twitter_Scrape():
-    def __init__(self):
+    def __init__(self,KEYWORD):
         self.driver = webdriver.Chrome(ChromeDriverManager().install())
         self.login()
-        self.navigate()
+        self.navigate(KEYWORD)
         node_db.exportNetwork()
         #self.get_toptweet_data(card, i)
         #self.topusers()
@@ -80,15 +80,15 @@ class Twitter_Scrape():
 
         #Username
         username = self.driver.find_element_by_xpath('//input[@name="session[username_or_email]"]')
-        username.send_keys('StephanoCallie')
+        username.send_keys('JKarnol')
 
         #passwordHardcodedForFullAutomation
         password = self.driver.find_element_by_xpath('//input[@name="session[password]"]')
-        password.send_keys('1password1')
+        password.send_keys('^2pNVT%ttzuoX')
         password.send_keys(Keys.RETURN)
         sleep(2)
 
-    def navigate(self):
+    def navigate(self,KEY):
         #TakingInputFromTopOfTrendingPage
         #search_input = self.driver.find_elements_by_xpath('//header[@role="banner"]')
         #search_input = self.driver.find_element_by_xpath('//a[@href="/explore"]').click()
@@ -101,7 +101,7 @@ class Twitter_Scrape():
         postnum+=4
         #self.driver.find_element_by_css_selector("#react-root > div > div > div.css-1dbjc4n.r-18u37iz.r-13qz1uu.r-417010 > main > div > div > div > div > div > div.css-1dbjc4n.r-1jgb5lz.r-1ye8kvj.r-13qz1uu > div > div > section > div > div > div:nth-child({0}) > div >  div > div > div:nth-child(2) > span".format(postnum)).click()
         
-        keyword = "fau"
+        keyword = KEY
         self.driver.get('https://twitter.com/search?q=%23' + keyword + '&src=typed_query')
         sleep(5)
         
@@ -114,7 +114,7 @@ class Twitter_Scrape():
         last_position = self.driver.execute_script("return window.pageYOffset;")
         scrolling = True
 
-        while scrolling:
+        for i in range(3):
             page_cards = self.driver.find_elements_by_xpath('//div[@data-testid="tweet"]')
             for card in page_cards:
                 tweet = self.get_tweet_data(card)
@@ -210,5 +210,5 @@ class Twitter_Scrape():
             writer.writerow(header)
             writer.writerows(top_data)
 
-instance = Twitter_Scrape()
+instance = Twitter_Scrape('fau')
 
