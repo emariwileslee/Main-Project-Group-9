@@ -90,17 +90,21 @@ class Twitter_Scrape():
 
     def navigate(self):
         #TakingInputFromTopOfTrendingPage
-        search_input = self.driver.find_elements_by_xpath('//header[@role="banner"]')
-        search_input = self.driver.find_element_by_xpath('//a[@href="/explore"]').click()
-        sleep(3)
+        #search_input = self.driver.find_elements_by_xpath('//header[@role="banner"]')
+        #search_input = self.driver.find_element_by_xpath('//a[@href="/explore"]').click()
+        sleep(5)
 
-        search_input = self.driver.find_element_by_xpath('//a[@href="/explore/tabs/trending"]').click()
+        #search_input = self.driver.find_element_by_xpath('//a[@href="/explore/tabs/trending"]').click()
 
-        sleep(3)
+        #sleep(3)
         postnum = 0
         postnum+=4
-        self.driver.find_element_by_css_selector("#react-root > div > div > div.css-1dbjc4n.r-18u37iz.r-13qz1uu.r-417010 > main > div > div > div > div > div > div.css-1dbjc4n.r-1jgb5lz.r-1ye8kvj.r-13qz1uu > div > div > section > div > div > div:nth-child({0}) > div >  div > div > div:nth-child(2) > span".format(postnum)).click()
-
+        #self.driver.find_element_by_css_selector("#react-root > div > div > div.css-1dbjc4n.r-18u37iz.r-13qz1uu.r-417010 > main > div > div > div > div > div > div.css-1dbjc4n.r-1jgb5lz.r-1ye8kvj.r-13qz1uu > div > div > section > div > div > div:nth-child({0}) > div >  div > div > div:nth-child(2) > span".format(postnum)).click()
+        
+        keyword = "fau"
+        self.driver.get('https://twitter.com/search?q=%23' + keyword + '&src=typed_query')
+        sleep(5)
+        
         sleep(1)
         scroll_attempt = [0]
 
@@ -207,3 +211,4 @@ class Twitter_Scrape():
             writer.writerows(top_data)
 
 instance = Twitter_Scrape()
+
