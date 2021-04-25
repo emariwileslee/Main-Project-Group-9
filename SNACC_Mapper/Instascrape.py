@@ -25,11 +25,14 @@ sys.path.append(".")
 from trend_node import node
 
 class InstaScrape():
-  def __init__(self,URL):
+  def __init__(self,URL,root_driver=None):
     self.chrome_options = Options()
     self.chrome_options.add_argument("--headless")
     self.chrome_options.add_argument("--disable-gpu")
-    self.driver =  webdriver.Chrome(ChromeDriverManager().install())#,options=self.chrome_options)
+    if root_driver is not None:
+        self.driver = root_driver
+    else:
+        self.driver =  webdriver.Chrome(ChromeDriverManager().install())#,options=self.chrome_options)
     self.driver.get(URL)
     self.allUserList = []
     self.allUnifiedList = []
@@ -185,7 +188,37 @@ class InstaScrape():
         return userNode
     else:
         return False
-
+    
+  def postGrab(self,KEYWORD,img_url):
+      self.driver.get(img_url)
+      #print("I got here !!!!!!")
+      userNode = node()
+      if (self.trendConnectionID(self.comment_Grab(),KEYWORD)) == True:
+          sleep(0.5)
+          trend_related_flag = True
+          likes_buffer = self.likes_grab()
+          if(likes_buffer==0):
+              print("Above Likes Threshold !!!")
+              trend_related_flag = False
+              userNode.total_likes+=likes_buffer
+              userNode.parent_node = "user"
+              try:
+                 userNode.captions.append(self.comment_Grab())
+              except:
+                 pass
+                    #userNode.printNode()
+      else:
+          pass#print("Keyword Not Found")
+      if trend_related_flag == True:
+            userNode.child_connections[0] = np.append(userNode.child_connections[0],np.asarray(self.returnUsernameList()))
+            userNode.child_connections[1] = np.append(userNode.child_connections[1],np.asarray(self.returnLikesList()))
+            userNode.child_connections[2] = np.append(userNode.child_connections[2],np.asarray(self.returnCommentList()))
+            userNode.child_connections[3] = np.append(userNode.child_connections[3],np.asarray(self.returnFollowerList()))
+            userNode.child_connections[4] = np.append(userNode.child_connections[4],np.asarray(self.returnFollowingList()))
+            return userNode
+      else:
+            return False
+    
   def likes_grab(self):#Navigate to post then call this function after
     try:
         try:
@@ -195,17 +228,19 @@ class InstaScrape():
         if likeNumstr.find(",") != -1:
             likeNumstr = likeNumstr.replace(',','')
         likeNum = int(likeNumstr)
-        if likeNum > 150:#FOR DEMONSTRATION, TAKE OUT OF PRODUCTION CODE
+        if likeNum > 1000:#FOR DEMONSTRATION, TAKE OUT OF PRODUCTION CODE
             return 0
             pass
         else:
-            #print("Number of likes : ", likeNum)
-            self.driver.find_element(By.CSS_SELECTOR, "div.Nm9Fw:nth-child(1) > a:nth-child(1)").click()#Open likes #CHANGE 'a' to 'button' IF STOPS WORKING
+            print("Number of likes : ", likeNum)
             sleep(2)
+            self.driver.find_element(By.CSS_SELECTOR, "div.Nm9Fw:nth-child(1) > a:nth-child(1)").click()#Open likes #CHANGE 'a' to 'button' IF STOPS WORKING
+            sleep(3)
             source = ""
             userList = []
             cycleNum = ceil((10*likeNum) / 36) + 1 #Number of Cycles addition +1 cycle is performed for accuracy
             #currentUser = 11
+            #print("I got here in likes")
             for x in range(cycleNum):
                 InstaScrape.likes_scroll(self,10)#Set to 48 for subsequent total list transversal
                 sleep(0.1)
@@ -215,6 +250,7 @@ class InstaScrape():
                     try:
                         source = self.driver.find_element(By.CSS_SELECTOR,"div.Igw0E.IwRSH.eGOV_.vwCYk.i0EQd:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child({0}) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > span:nth-child(1) > a:nth-child(1)".format(i)).text
                     except: #NoSuchElementException:
+                        #print('whoops')
                         pass
                     if((source in userList)==False):
                         userList.append(source)
@@ -234,7 +270,7 @@ class InstaScrape():
                     self.likes_List.append(i)
             return likeNum    
     except: #NoSuchElementException:
-        #print("No likes found")
+        print("No likes found")
         return 0
         #self.driver.find_element(By.CSS_SELECTOR, "body > div._2dDPU.CkGkG > div.Igw0E.IwRSH.eGOV_._4EzTm.BI4qX.qJPeX.fm1AK.TxciK.yiMZG > button").click()#Close post
   

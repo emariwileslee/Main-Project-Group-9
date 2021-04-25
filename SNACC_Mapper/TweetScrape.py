@@ -47,26 +47,27 @@ class TweetScrape():
     def login(self,USERNAME,PASSWORD):#This is used to sign into instagram with a user account to allow greater viewing privelege
        self.driver.get("https://twitter.com/login")
        sleep(1)
-       element_present = EC.presence_of_element_located((By.NAME,"username"))
+       element_present = EC.presence_of_element_located((By.NAME,"session[username_or_email]"))
        WebDriverWait(self.driver,10).until(element_present)
-       if self.driver.find_element(By.NAME, "username"):
+       if self.driver.find_element(By.NAME, "session[username_or_email]"):
             sleep(1)#AFTER PROTOTYPING USE WEB WAIT FOR SLEEP
-            self.driver.find_element(By.NAME, "username").click()
+            self.driver.find_element(By.NAME, "session[username_or_email]").click()
             # 7 | type | name=username |
-            self.driver.find_element(By.NAME, "username").send_keys(USERNAME) #USERNAME
+            self.driver.find_element(By.NAME, "session[username_or_email]").send_keys(USERNAME) #USERNAME
             # 8 | click | name=password |  | 
-            self.driver.find_element(By.NAME, "password").click()
+            self.driver.find_element(By.NAME, "session[password]").click()
             # 9 | type | name=password |
-            self.driver.find_element(By.NAME, "password").send_keys(PASSWORD) #PASSWORD
+            self.driver.find_element(By.NAME, "session[password]").send_keys(PASSWORD) #PASSWORD
             # 10 Click login button on the sign in page
-            self.driver.find_element(By.CSS_SELECTOR, "div.css-1dbjc4n.r-eqz5dr.r-1777fci > div > div").click()
+            self.driver.find_element(By.CSS_SELECTOR, "div.css-1dbjc4n.r-13qz1uu > form > div > div:nth-child(8) > div").click()
             try:
                 WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#react-root > div > div > div.css-1dbjc4n.r-13qz1uu.r-417010 > main > div > div > div.css-1dbjc4n.r-13qz1uu > form > div > div:nth-child(8) > div"))).click()
             except:
-                try:
+                pass
+                '''try:
                     self.login(USERNAME, PASSWORD)
                 except:
-                    print("Could not complete login")
+                    print("Could not complete login")'''
        else:
             #Selects the login button at the root page
             element = self.driver.find_element(By.CSS_SELECTOR, "#layers > div > div:nth-child(2) > div > div > div > div.css-1dbjc4n.r-1awozwy.r-18u37iz.r-1wtj0ep.r-rthrr5 > div.css-1dbjc4n.r-1ydw1k6 > div > div:nth-child(1) > a")
@@ -94,10 +95,11 @@ class TweetScrape():
             try:
                 WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/section/main/div/div/div/div/button"))).click()
             except:
-                try:
+                pass
+                '''try:
                     self.login(USERNAME, PASSWORD)
                 except:
-                    print("Could not complete login")
+                    print("Could not complete login")'''
        
        def logout(self):#This is used to log out of a user account
             #This clicks the profile menu
@@ -105,13 +107,34 @@ class TweetScrape():
             #This clicks the logout button
             self.driver.find_element(By.XPATH, "//div[2]/div[2]/div/div/div/div/div/div/div").click() 
        
-       def page_nav(self,ROWS,COLUMNS,KEYWORD):# This is used to navigate to individual posts on the page
+       def page_nav(self,ROWS,KEYWORD):# This is used to navigate to individual posts on the page
             userNode = node()  
             empty_flag = False
             trend_related_flag = False 
-            
+            bio = self.bio_Grab(self)
             #PATHING CODE HERE
-            
+            for row in range(1,ROWS):
+                try:
+                    self.driver.find_element(By.CSS_SELECTOR, "div.Nnq7C:nth-child({1}) > div:nth-child({0}) > a:nth-child(1)".format(row)).click() #2D Grid(X,Y) - First "nth-child" = Y and Second "nth-child" = X. Third "nth-child" should not change
+                except:
+                    #print("Grid Structure Not Found")
+                    empty_flag = True
+                    pass
+                
+                if (self.trendConnectionID(bio,KEYWORD) == True or self.trendConnectionID(self.comment_Grab(),KEYWORD) == True) and empty_flag == False:
+                    sleep(0.5)
+                    trend_related_flag = True
+                    likes_buffer = self.likes_grab()
+                    if(likes_buffer==0):
+                        print("Above Likes Threshold !!!")
+                        trend_related_flag = False
+                    userNode.total_likes+=likes_buffer
+                    userNode.parent_node = "user"
+                    try:
+                        userNode.captions.append(self.comment_Grab())
+                    except:
+                        pass
+                
             if trend_related_flag == True:
                 userNode.child_connections[0] = np.append(userNode.child_connections[0],np.asarray(self.returnUsernameList()))
                 userNode.child_connections[1] = np.append(userNode.child_connections[1],np.asarray(self.returnLikesList()))
@@ -121,6 +144,69 @@ class TweetScrape():
                 return userNode
             else:
                 return False
+       
+       def likes_grab(self):#Navigate to post then call this function after
+            try:
+                try:
+                    likeNumstr = self.driver.find_element(By.CSS_SELECTOR, "#react-root > div > div > div.css-1dbjc4n.r-18u37iz.r-13qz1uu.r-417010 > main > div > div > div > div.css-1dbjc4n.r-kemksi.r-1kqtdi0.r-1ljd8xs.r-13l2t4g.r-1phboty.r-1jgb5lz.r-11wrixw.r-61z16t.r-1ye8kvj.r-13qz1uu.r-184en5c > div > div:nth-child(2) > div > section > div > div > div:nth-child(1) > div > div > article > div > div > div > div:nth-child(3) > div:nth-child(4) > div > div:nth-child(3) > div > a > div > span > span").text #CHANGE 'a' to 'button' IF STOPS WORKING
+                except:
+                    likeNumstr = self.driver.find_element(By.CSS_SELECTOR, "div.Nm9Fw:nth-child(1) > button:nth-child(1) > span:nth-child(1)").text
+                if likeNumstr.find(",") != -1:
+                    likeNumstr = likeNumstr.replace(',','')
+                likeNum = int(likeNumstr)
+                if likeNum > 150:#FOR DEMONSTRATION, TAKE OUT OF PRODUCTION CODE
+                    return 0
+                    pass
+                else:
+                    #print("Number of likes : ", likeNum)
+                    self.driver.find_element(By.CSS_SELECTOR, "#react-root > div > div > div.css-1dbjc4n.r-18u37iz.r-13qz1uu.r-417010 > main > div > div > div > div.css-1dbjc4n.r-kemksi.r-1kqtdi0.r-1ljd8xs.r-13l2t4g.r-1phboty.r-1jgb5lz.r-11wrixw.r-61z16t.r-1ye8kvj.r-13qz1uu.r-184en5c > div > div:nth-child(2) > div > section > div > div > div:nth-child(1) > div > div > article > div > div > div > div:nth-child(3) > div:nth-child(4) > div > div:nth-child(2) > div > a").click()#Open likes #CHANGE 'a' to 'button' IF STOPS WORKING
+                    sleep(2)
+                    source = ""
+                    userList = []
+                    cycleNum = ceil((10*likeNum) / 36) + 1 #Number of Cycles addition +1 cycle is performed for accuracy
+                    #currentUser = 11
+                    for x in range(cycleNum):
+                        self.likes_scroll(self,10)#Set to 48 for subsequent total list transversal
+                        sleep(0.1)
+                        #print("CYCLE: ",x+1)
+                
+                        for i in range(1,20):
+                            try:
+                                source = self.driver.find_element(By.CSS_SELECTOR,"div.Igw0E.IwRSH.eGOV_.vwCYk.i0EQd:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child({0}) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > span:nth-child(1) > a:nth-child(1)".format(i)).text
+                            except: #NoSuchElementException:
+                                pass
+                            if((source in userList)==False):
+                                userList.append(source)
+                                
+                   
+                    '''print("START OF ARRAY PRINT")
+                    for i in userList:
+                        print(i) '''
+                        
+                    #print("userList Final Size: ",len(userList))
+                    self.driver.find_element(By.CSS_SELECTOR, "body > div.RnEpo.Yx5HN > div > div > div:nth-child(1) > div > div:nth-child(3) > button").click()#Close likes
+                    sleep(0.5)
+                    #self.driver.find_element(By.CSS_SELECTOR, "div.Igw0E.IwRSH.eGOV_._4EzTm.BI4qX.qJPeX.fm1AK.TxciK.yiMZG > button:nth-child(1)").click()#Close post
+                    for i in userList:
+                        if((i in self.allUserList)==False):#Ensures only new usernames are recorded, no repeats
+                            self.allUserList.append(i)
+                            self.likes_List.append(i)
+                    return likeNum    
+            except: #NoSuchElementException:
+                #print("No likes found")
+                return 0
+                #self.driver.find_element(By.CSS_SELECTOR, "body > div._2dDPU.CkGkG > div.Igw0E.IwRSH.eGOV_._4EzTm.BI4qX.qJPeX.fm1AK.TxciK.yiMZG > button").click()#Close post
+  
+       def likes_scroll(self,N_Tab): #N_Tab is number of times to press, set to 66 for total list transversal
+            #element = self.driver.find_element(By.CSS_SELECTOR, "body > div.RnEpo.Yx5HN > div > div > div.Igw0E.IwRSH.eGOV_.vwCYk.i0EQd > div")
+            actions = ActionChains(self.driver)
+            #actions.reset_actions()
+            #actions.move_to_element(element).perform()
+            for i in range(N_Tab):
+                actions.send_keys(Keys.TAB)
+                
+            actions.perform()    
+            self.driver.execute_script("arguments[0].scrollIntoView();",element) 
        
        def trendConnectionID(self,textData,keyword):
           #print(textData)
@@ -136,7 +222,23 @@ class TweetScrape():
                   return True
           #print("No keywords found")
           return False
-             
+       
+       def caption_Grab(self):
+          try:
+              firstComment = self.driver.find_element(By.CSS_SELECTOR,"div.C4VMK:nth-child(2) > span").text
+              #print(firstComment)
+              return firstComment
+          except:
+              pass 
+       
+       def bio_Grab(self):
+          try:
+              bio = self.driver.find_element(By.CSS_SELECTOR,"#react-root > div > div > div.css-1dbjc4n.r-18u37iz.r-13qz1uu.r-417010 > main > div > div > div > div.css-1dbjc4n.r-kemksi.r-1kqtdi0.r-1ljd8xs.r-13l2t4g.r-1phboty.r-1jgb5lz.r-11wrixw.r-61z16t.r-1ye8kvj.r-13qz1uu.r-184en5c > div > div:nth-child(2) > div > div > div:nth-child(1) > div > div:nth-child(3) > div > div > span").text
+              #print(firstComment)
+              return bio
+          except:
+              pass
+        
        def totalUsernamePrint(self):
         for i in self.allUserList:
             print(i)
@@ -162,3 +264,23 @@ class TweetScrape():
                pass
        def userRedirect(self,url):
            self.driver.get(url) 
+           
+'''instance = TweetScrape('https://twitter.com/faustudents?lang=en')
+instance.login('JKarnol','^2pNVT%ttzuoX')
+instance.seedSelect()'''
+
+#CARD HTML
+#div.css-1dbjc4n.r-kemksi.r-1kqtdi0.r-1ljd8xs.r-13l2t4g.r-1phboty.r-1jgb5lz.r-11wrixw.r-61z16t.r-1ye8kvj.r-13qz1uu.r-184en5c > div > div:nth-child(2) > div > div > div:nth-child(3) > section > div > div > div:nth-child({0}) > div > div > article > div > div > div > div.css-1dbjc4n.r-18u37iz
+#ALTERNATE
+##react-root > div > div > div.css-1dbjc4n.r-18u37iz.r-13qz1uu.r-417010 > main > div > div > div > div.css-1dbjc4n.r-kemksi.r-1kqtdi0.r-1ljd8xs.r-13l2t4g.r-1phboty.r-1jgb5lz.r-11wrixw.r-61z16t.r-1ye8kvj.r-13qz1uu.r-184en5c > div > div:nth-child(2) > div > div > div:nth-child(3) > section > div > div > div:nth-child({0})
+
+#Likes
+##react-root > div > div > div.css-1dbjc4n.r-18u37iz.r-13qz1uu.r-417010 > main > div > div > div > div.css-1dbjc4n.r-kemksi.r-1kqtdi0.r-1ljd8xs.r-13l2t4g.r-1phboty.r-1jgb5lz.r-11wrixw.r-61z16t.r-1ye8kvj.r-13qz1uu.r-184en5c > div > div:nth-child(2) > div > section > div > div > div:nth-child(1) > div > div > article > div > div > div > div:nth-child(3) > div:nth-child(4) > div > div:nth-child(2) > div > a
+#Likes Num
+#react-root > div > div > div.css-1dbjc4n.r-18u37iz.r-13qz1uu.r-417010 > main > div > div > div > div.css-1dbjc4n.r-kemksi.r-1kqtdi0.r-1ljd8xs.r-13l2t4g.r-1phboty.r-1jgb5lz.r-11wrixw.r-61z16t.r-1ye8kvj.r-13qz1uu.r-184en5c > div > div:nth-child(2) > div > section > div > div > div:nth-child(1) > div > div > article > div > div > div > div:nth-child(3) > div:nth-child(4) > div > div:nth-child(3) > div > a > div > span > span
+
+#Retweets
+##react-root > div > div > div.css-1dbjc4n.r-18u37iz.r-13qz1uu.r-417010 > main > div > div > div > div.css-1dbjc4n.r-kemksi.r-1kqtdi0.r-1ljd8xs.r-13l2t4g.r-1phboty.r-1jgb5lz.r-11wrixw.r-61z16t.r-1ye8kvj.r-13qz1uu.r-184en5c > div > div:nth-child(2) > div > section > div > div > div:nth-child(1) > div > div > article > div > div > div > div:nth-child(3) > div:nth-child(4) > div > div.css-1dbjc4n.r-1mf7evn > div > a
+
+#Back Button
+##react-root > div > div > div.css-1dbjc4n.r-18u37iz.r-13qz1uu.r-417010 > main > div > div > div > div.css-1dbjc4n.r-kemksi.r-1kqtdi0.r-1ljd8xs.r-13l2t4g.r-1phboty.r-1jgb5lz.r-11wrixw.r-61z16t.r-1ye8kvj.r-13qz1uu.r-184en5c > div > div.css-1dbjc4n.r-aqfbo4.r-kemksi.r-1igl3o0.r-rull8r.r-qklmqi.r-gtdqiz.r-1gn8etr.r-1g40b8q > div.css-1dbjc4n.r-1loqt21.r-136ojw6 > div > div > div > div > div.css-1dbjc4n.r-1habvwh.r-1pz39u2.r-1777fci.r-15ysp7h.r-s8bhmr > div > div

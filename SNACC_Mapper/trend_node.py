@@ -18,6 +18,7 @@ class node():
         self.total_followers = 0
         self.total_following = 0
         self.post_date = ""
+        self.root_post_url = ""
     
     def printNode(self):
         print("parent node: ",self.parent_node)

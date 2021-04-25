@@ -18,12 +18,77 @@ from trend_node import nodeClassifier
 sys.path.append(".\TCI\.")
 #from Trend_Connection_Identifier import TCI
 #print("Program Started 69")
+
+
+class MT_Mapper():
+    def __init__(self,root_driver,node_database):
+        self.driver = root_driver
+        global root_profile
+        global output_location
+        global node_db
+        node_db = node_database
+        self.start = time.time()
+        #username = "snackertestunit00"
+        #password = "Ca4SraTX3pvYuw8"
+        self.root_profile = node_db.node_list[0].username#"sgatfau"#"fauorientation"
+        self.url = "https://www.instagram.com/"+self.root_profile+"/"#"https://www.instagram.com/explore/tags/als/"
+        #redirect_url = "https://www.instagram.com/fauhousing/live/"
+        self.output_location = r'C:\Users\emari\Documents\Github-Projects\SNACC\SNACC_Mapper\Output'#r'C:\Users\emari\Documents\Engineering Design 1\Trend Network Mapper Prototype\Web Scraping\Scrapped Content'
+        node_db.output_location = self.output_location
+        root_profile = self.root_profile
+        output_location = self.output_location
+        #KEYWORD = ["FAU","Owls"]
+        self.START_THREADS = threading.active_count()
+        self.MAX_THREADS = 3#Starts at 0, Must be at least 1
+        self.MAX_THREADS += 1
+        self.OPERATION_MODE = True #True is Mapper || False is Post Collector
+        self.PLATFORM_MODE = True #True is Instagram || False is Twitter
+        self.exit_flag = False
+        global initialEvent
+        initialEvent = threading.Event()
+        self.threadArray = np.empty((self.MAX_THREADS+2,),dtype=object)
+
+    def threadInitialize(self):
+        self.threadArray[0] = myThreads(0,"Thread-0",0,self.url,initialEvent,self.PLATFORM_MODE,self.OPERATION_MODE,self.driver)
+        self.threadArray[0].start()
+        print("Thread 0 Started")
+        for i in range(1,self.MAX_THREADS):
+            #print("I got here")
+            initialEvent.wait()
+            self.threadArray[i] = myThreads(i,"Thread-%d"%i,i,self.url,initialEvent,self.PLATFORM_MODE,self.OPERATION_MODE)
+            print("Creating ", self.threadArray[i].name)
+            #print("Initial thread complete")
+            self.threadArray[i].start()
+            #print("ACTIVE THREADS CURRENTLY: ",threadArray[i].active_count())
+            #threadArray[i].join()
+    
+    def exportNodeDB(self):
+        return node_db
+    
+    def exitThread(self):
+        global node_db
+        while not self.exit_flag:
+            if not threading.active_count()>self.START_THREADS:
+                self.exit_flag = True
+                self.threadArray[self.MAX_THREADS+1] = myThreads(self.MAX_THREADS+1,"Final Thread",self.MAX_THREADS+1,self.url,initialEvent,self.PLATFORM_MODE,self.OPERATION_MODE)
+                self.threadArray[self.MAX_THREADS+1].printGlobalinitialUserList()
+                end = time.time()
+                print("Execution Time: ",end-self.start, " seconds")
+                try:
+                  node_db.exportNetwork()
+                except:
+                  print('Write Error, Unable to export trend network')
+                  pass
+                return node_db
        
 class myThreads(threading.Thread):
-   def __init__(self, threadID, name, counter, url, event, plat_flag=True,op_type=True):
+   def __init__(self, threadID, name, counter, url, event, plat_flag=True,op_type=True,root_driver=None):
+      global root_profile
+      global output_location
       #print("Thread Initialized")
       threading.Thread.__init__(self)
       self.threadID = threadID
+      self.root_driver = root_driver
       self.operation_flag = op_type
       self.platform_flag = plat_flag
       self.name = name
@@ -33,11 +98,11 @@ class myThreads(threading.Thread):
       #self.currentLoad = 0
       self.ROWS = 2
       self.COLUMNS = 1
-      self.KEYWORD = ["FAU","Orienation","Owls","Boca","Florida","Atlantic","University"] 
+      self.KEYWORD = ["FAU","Orienation","Owls","Boca","Florida","Atlantic","University","#fau"] 
       self.event_obj = event
       #self.startFlag = self.event_obj.wait()
-      self.username = ['sionjastro','eldiadvit','iquensenor']#'ewltest99'#"jksnacker00"#"snackertestunit00"#'jksnacker00'
-      self.password = ['^2pNVT%ttzuoX','E$m88McNMQ6Q','ihZ$%U5QiPYr']#"ESctQtHDKxa56we"#'ESctQtHDKxa56we'
+      self.username = ['snackertest99','snackertestunit00','fullmetal1699']#'ewltest99'#"jksnacker00"#"snackertestunit00"#'jksnacker00'
+      self.password = ['Ca4SraTX3pvYuw8','Ca4SraTX3pvYuw8','x&X$$qkjFMct']#"ESctQtHDKxa56we"#'ESctQtHDKxa56we'
       print("ACTIVE THREADS CURRENTLY: ", threading.active_count())
     
    def run(self):
@@ -53,40 +118,62 @@ class myThreads(threading.Thread):
       global node_db
       global tci_inst
       global threadQueue
+      global num_of_roots
       threadQueue=1
+      num_of_roots = len(node_db.node_list)
       #tci_inst = TCI()
       print("****GOOGLE WORD2VEC DATABASE LOAD COMPLETE****")
       initialUserList = [np.array([],dtype=object),np.array([],dtype=object),np.array([],dtype=object),np.array([],dtype=object),np.array([],dtype=object)]
       currentLoad = []
-      node_db = nodeClassifier(output_location)
+      #node_db = nodeClassifier(output_location)
       print("Starting "+self.name)
       if self.operation_flag == True and self.platform_flag == True:
-          instance = InstaScrape(self.url)
+          instance = InstaScrape(node_db.node_list[0].root_post_url,self.root_driver)
       elif self.operation_flag == True and self.platform_flag == False:
           instance = TweetScrape(self.url)
       else:
           pass
-      instance.login(self.username[0],self.password[0])
-      instance.seedSelect()
+
+      if self.root_driver is not None:
+          pass
+      else:
+          instance.login(self.username[0],self.password[0])
+          instance.seedSelect()
       #Instagram Specific
       #self.parent_node = root_profile
       bufferNode = node()
       #root_node = root_profile
-      bufferNode = instance.page_nav(self.ROWS,self.COLUMNS,self.KEYWORD)# ROWS, COLUMNS
-      bufferNode.parent_node = self.parent_node
-      bufferNode.username = root_profile
-      bufferNode.connection_type = 'ROOT'
-      node_db.addNode(bufferNode)      
+      for k in range(len(node_db.node_list)):
+          #print('i GOT HERE')
+          #if node_db.node_list[k].connection_type == 'ROOT':
+          bufferNode = instance.postGrab(self.KEYWORD,node_db.node_list[k].root_post_url)# ROWS, COLUMNS
+          try:
+              node_db.node_list[k].child_connections = bufferNode.child_connections
+          except:
+              pass
+          '''else:
+              bufferNode = instance.page_nav(self.ROWS,self.COLUMNS,self.KEYWORD)# ROWS, COLUMNS
+              node_db.node_list[k].child_connections = bufferNode.child_connections'''
+      #bufferNode.parent_node = self.parent_node
+      #bufferNode.username = root_profile
+      #bufferNode.connection_type = 'ROOT'
+      #node_db.addNode(bufferNode)      
       
       #print(np.asarray(initialUserList).shape)
-      for i in range(node_db.node_list[0].child_connections):
-          print(node_db.node_list[0].child_connections[i])
-      
-      for i in range(node_db.node_list[0].child_connections):  
-          currentLoad.append(floor(len(node_db.node_list[0].child_connections[i]) / 3))#CHANGE THIS 6 TO ADUST LOAD FOR RIGHT NOW
+      for i in range(len(node_db.node_list)):
+              print(node_db.node_list[0].child_connections[i])
+      for k in range(len(node_db.node_list)):    
+          for i in range(len(node_db.node_list[k].child_connections)):  
+              currentLoad.append(floor(len(node_db.node_list[0].child_connections[i]) / 3))#CHANGE THIS 6 TO ADUST LOAD FOR RIGHT NOW
       #instance.Insta_User_Branching(3,1,KEYWORD)# ROWS, COLUMNS
       
       #sleep(5)
+      try:
+          node_db.exportNetwork()
+      except:
+          print('Write Error, Unable to export trend network')
+          pass
+      
       print("Exiting ", self.name)
       instance.teardown_method()
       threadQueue-=1
@@ -103,7 +190,9 @@ class myThreads(threading.Thread):
       global tci_inst
       global threadQueue
       global threadCounter
+      global gl_cycle_counter
       threadCounter = 0
+      gl_cycle_counter = 1
       index = []
       for i in range(len(currentLoad)):
           index.append(((self.threadID-1) * currentLoad[i]))
@@ -142,7 +231,13 @@ class myThreads(threading.Thread):
       
       list_length = range(0,len(node_db.node_list))
       #length_buffer = len(node_db.node_list)
+      try:
+          node_db.exportNetwork()
+      except:
+          print('Write Error, Unable to export trend network')
+          pass
       cycle_counter = 2
+      gl_cycle_counter+=1
       #print("Size of child connections: ",len(node_db.node_list[0].child_connections[1]))
       threadCounter=0
       #driver_check = []
@@ -169,6 +264,11 @@ class myThreads(threading.Thread):
           print("Thread {3}: This is the position in the node_list: {0}\n This is threadQueue: {1}\n This is threadCounter: {2}\n".format(lists,threadQueue,threadCounter,self.threadID))
           
           self.MapperNodeCollection(instance, node_db.node_list[lists].child_connections,index, lists)
+          try:
+              node_db.exportNetwork()
+          except:
+              print('Write Error, Unable to export trend network')
+              pass
           #print("Instagram Node Collection PASSED !!!")
           threadQueue+=1
           threadCounter = 0
@@ -197,7 +297,11 @@ class myThreads(threading.Thread):
               cycle_counter+=1
               list_length = range(0,len(node_db.node_list))
             
-      
+      try:
+          node_db.exportNetwork()
+      except:
+          print('Write Error, Unable to export trend network')
+          pass
       print("Exiting ", self.name)
       instance.teardown_method()
       #instance.teardown_method()
@@ -206,10 +310,11 @@ class myThreads(threading.Thread):
    def MapperNodeCollection(self,driver_instance, username_list,index,lists):
        global tci_inst
        global node_db
+       global num_of_roots
        bufferNode = node()
        #print("I got here, ThreadID: {0}".format(self.threadID))
-       if self.threadID==1:
-              for i in username_list[lists][0:currentLoad[lists]]:
+       if self.threadID==1 and gl_cycle_counter==1:
+              for i in username_list[lists][num_of_roots:currentLoad[lists]]:
                   #print("I got here too1, ThreadID: {0}".format(self.threadID))
                   #print(i)
                   #node_db.addNode(root_node, i,'unknown')
@@ -283,7 +388,11 @@ class myThreads(threading.Thread):
        global initialUserList
        global node_db
        #global tci_inst
-       node_db.exportNetwork()
+       try:
+          node_db.exportNetwork()
+       except:
+          print('Write Error, Unable to export trend network')
+          pass
        node_db.printNetwork()
        #tci_inst.sampleSenTrendMean()
        testtext = 'london bridge is falling down in spain with the queen doing a sacred dance on the sun from jupiter'
@@ -304,6 +413,9 @@ class myThreads(threading.Thread):
           print(node_db.node_list[0].child_connections[i])
        sys.exit()
 
+#instance = MT_Mapper()
+
+r'''            
 #print("Program Started 69")
 start = time.time()
 #username = "snackertestunit00"
@@ -322,6 +434,7 @@ exit_flag = False
 
 initialEvent = threading.Event()
 threadArray = np.empty((MAX_THREADS+2,),dtype=object)
+
 threadArray[0] = myThreads(0,"Thread-0",0,url,initialEvent,PLATFORM_MODE,OPERATION_MODE)
 threadArray[0].start()
 print("Thread 0 Started")
@@ -341,7 +454,7 @@ while not exit_flag:
         threadArray[MAX_THREADS+1] = myThreads(MAX_THREADS+1,"Final Thread",MAX_THREADS+1,url,initialEvent,PLATFORM_MODE,OPERATION_MODE)
         threadArray[MAX_THREADS+1].printGlobalinitialUserList()
         end = time.time()
-        print("Execution Time: ",end-start, " seconds")
+        print("Execution Time: ",end-start, " seconds")'''
         
 #threadArray[MAX_THREADS+1] = myThreads(MAX_THREADS+1,"Final Thread",MAX_THREADS+1,url,initialEvent)
 #threadArray[MAX_THREADS+1].printGlobalinitialUserList()

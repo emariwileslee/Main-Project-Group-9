@@ -29,8 +29,7 @@ class Twitter_Scrape():
         self.login()
         self.navigate(KEYWORD)
         node_db.exportNetwork()
-        #self.get_toptweet_data(card, i)
-        #self.topusers()
+        
         
     def get_tweet_data(self,card):
         bufferNode = node()
