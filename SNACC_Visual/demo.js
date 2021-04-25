@@ -17,6 +17,8 @@ function processData(allText) {
             lines.push(tarr);
         }
     }
+    console.log("Lines: ")
+    console.log(lines)
     return lines
 // alert(lines);
 }
@@ -58,7 +60,7 @@ function readFile(input) {
   reader.onload = function() {
     var myobj = document.getElementById("imput");
     myobj.remove();
-
+    console.log(reader.result);
     relationships = processData(reader.result)
     
     var nodeArray = []
@@ -70,7 +72,7 @@ function readFile(input) {
         followedName = relationships[i][0].slice(12)
         followerName = relationships[i][1].slice(9)
         
-
+        console.log(followedName + ": " + followerName)
 
         
         followed = addToPeopleIdDict(followedName, nodeArray)
@@ -88,7 +90,7 @@ function readFile(input) {
             PersonsFollowers[followed].push(followerName)
         }
     }
-    
+
     var origNodes = new vis.DataSet(nodeArray)
     var nodes  = new vis.DataSet(nodeArray)
     
@@ -98,7 +100,7 @@ function readFile(input) {
     
     // create a network
     var container = document.getElementById('mynetwork');
-
+    console.log(container)
     // provide the data in the vis format
     var data = {
         nodes: nodes,
