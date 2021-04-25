@@ -102,7 +102,7 @@ class Twitter_Scrape():
         #self.driver.find_element_by_css_selector("#react-root > div > div > div.css-1dbjc4n.r-18u37iz.r-13qz1uu.r-417010 > main > div > div > div > div > div > div.css-1dbjc4n.r-1jgb5lz.r-1ye8kvj.r-13qz1uu > div > div > section > div > div > div:nth-child({0}) > div >  div > div > div:nth-child(2) > span".format(postnum)).click()
         
         keyword = KEY
-        self.driver.get('https://twitter.com/search?q=' + keyword + '&src=typed_query')
+        self.driver.get('https://twitter.com/search?q=%23' + keyword + '&src=typed_query')
         sleep(5)
         
         sleep(1)
@@ -114,17 +114,17 @@ class Twitter_Scrape():
         last_position = self.driver.execute_script("return window.pageYOffset;")
         scrolling = True
 
-        for i in range(0,4):
+        for i in range(3):
             page_cards = self.driver.find_elements_by_xpath('//div[@data-testid="tweet"]')
-            #for card in page_cards:
-            tweet = self.get_tweet_data(page_cards[i])
-            if tweet:
-                tweet_id = ''.join(tweet)
-                if tweet_id not in tweet_ids:
-                    tweet_ids.add(tweet_id)
-                    data.append(tweet)
+            for card in page_cards:
+                tweet = self.get_tweet_data(card)
+                if tweet:
+                    tweet_id = ''.join(tweet)
+                    if tweet_id not in tweet_ids:
+                        tweet_ids.add(tweet_id)
+                        data.append(tweet)
 
-            '''scroll_attempt = 0
+            scroll_attempt = 0
             while True:
                 self.driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
                 sleep(1)
@@ -139,7 +139,7 @@ class Twitter_Scrape():
                         sleep(2)
                 else:
                     last_position = curr_position
-                    break'''
+                    break
 
         sleep(5)
 
