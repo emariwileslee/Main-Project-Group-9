@@ -1,9 +1,13 @@
 
 var people_ids = {}
 var id_index = 0
+var lastRightClicked = -1;
+
+var nodeArray = []
+var edgeArray = []
+var PersonsFollowers = []
 
 $(document).ready(renderGraph());
-
 
 function findSubNetwork(selected, edgeArray){
     var selectedsNetwork = []
@@ -33,24 +37,15 @@ function renderGraph(){
     readFile(data)
 }
 
-function checkIfLoaded(){
-   
-    return new Promise(resolve => {
-     while(true){
-        if (data != -1) {
-            resolve(true);
-        }
-    }
-  });
-}
-
 function readFile(relationships) {
 
 
+    
+
     var nodeArray = []
     var edgeArray = []
-
     var PersonsFollowers = []
+
     //12 used to be 9 for follow-demo.csv.. HAVE TO CHANGE AGAIN IF HEADERS CHANGE ( eventually make it so it just parses until the ":")
     for (var i = 0; i < relationships.length; i++){
         followedName = relationships[i][0]
@@ -164,18 +159,16 @@ function readFile(relationships) {
 //Context Menu right click logic  
 
   // Trigger action when the contexmenu is about to be shown
-    $(document).bind("contextmenu", function (event) {
+    network.on("oncontext", function (properties) 
+    {
+        lastRightClicked = network.getNodeAt(properties.pointer.DOM);
+        properties.event.preventDefault();
         
-        // Avoid the real one
-        event.preventDefault();
-        
-        // Show contextmenu
-        $(".custom-menu").finish().toggle(100).
-        
-        // In the right position (the mouse)
-        css({
-            top: event.pageY + "px",
-            left: event.pageX + "px"
+       
+        $(".custom-menu").finish().toggle(100);
+        $(".custom-menu").css({
+            top: properties.event.pageY + "px",
+            left: properties.event.pageX + "px"
         });
     });
 
@@ -200,19 +193,25 @@ function readFile(relationships) {
             
             // A case for each action. Your actions here
             case "first": alert("first"); break;
-            case "second": alert("second"); break;
-            case "third": alert("third"); break;
+            case "seeNetwork": alert("second"); break;
+            case "showProfiles": showProfiles(); break;
         }
       
         // Hide it AFTER the action was triggered
         $(".custom-menu").hide(100);
       });
 
-
-  reader.onerror = function() {
-    console.log(reader.error);
-  };
-
+      function showProfiles(){
+        
+        var name = nodeArray[lastRightClicked].label
+        openInNewTab('https://www.instagram.com/'+ name);
+      }
+      function openInNewTab(href) {
+            Object.assign(document.createElement('a'), {
+            target: '_blank',
+            href: href,
+        }).click();
+       }
 }
 
 
