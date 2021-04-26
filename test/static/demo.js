@@ -204,7 +204,7 @@ function readFile(relationships) {
       function showProfiles(){
         
         var name = nodeArray[lastRightClicked].label
-        openInNewTab('www.instagram.com/'+ name);
+        openInNewTab('https://www.instagram.com/'+ name);
       }
       function openInNewTab(href) {
             Object.assign(document.createElement('a'), {
