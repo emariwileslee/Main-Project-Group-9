@@ -49,7 +49,9 @@
         
         var data = []
         {% for d in data %}
-            contents = ["{{d[0]}}", "{{d[1]}}"]
+            contents = {parent_node : "{{d[0]}}", username : "{{d[1]}}" , connection_type: "{{d[2]}}", bio : "{{d[3]}}", 
+            captions : "{{d[4]}}", total_likes : "{{d[5]}}", total_followers:  "{{d[6]}}", total_following : "{{d[7]}}", 
+            profile_img_url : "{{d[8]}}", root_post_url : "{{d[9]}}"}
             data.push(contents)
         {% endfor %}
         

@@ -23,10 +23,11 @@ function findSubNetwork(selected, edgeArray){
     return selectedsNetwork;
 }
 
-function addToPeopleIdDict(name, nodeArray){
+function addToPeopleIdDict(nodeArray, name, total_followers = -1){
     if (people_ids[name] == undefined){
         people_ids[name] = id_index
-        nodeArray.push({id: id_index, label: name, group: id_index % 5, value: id_index})
+        //size is controlled by value
+        nodeArray.push({id: id_index, label: name, group: id_index % 5, value: id_index, data : {total_followers: total_followers}})
         id_index += 1 
 
     } 
@@ -37,7 +38,7 @@ function renderGraph(){
     readFile(data)
 }
 
-function readFile(relationships) {
+function readFile(data) {
 
 
     
@@ -47,27 +48,28 @@ function readFile(relationships) {
     var PersonsFollowers = []
 
     //12 used to be 9 for follow-demo.csv.. HAVE TO CHANGE AGAIN IF HEADERS CHANGE ( eventually make it so it just parses until the ":")
-    for (var i = 0; i < relationships.length; i++){
-        followedName = relationships[i][0]
-        followerName = relationships[i][1]
-
+    for (var i = 0; i < data.length; i++){
+        parentNodeName = data[i].parent_node
+        nodeName = data[i].username
+        connectionType = data[i].connection_type
+        total_followers = data[i].total_followers;
+        follower = addToPeopleIdDict(nodeArray, nodeName, total_followers = total_followers)
+        followed  = people_ids[parentNodeName]
         
-        followed = addToPeopleIdDict(followedName, nodeArray)
-        follower = addToPeopleIdDict(followerName, nodeArray)
-
-        
-
-        edgeArray.push({from: followed, to: follower})
+        if (connectionType != 'ROOT'){
+            edgeArray.push({from: followed, to: follower})
+        }
+            
 
         if(PersonsFollowers[followed] != undefined){
 
-            PersonsFollowers[followed].push(followerName)
+            PersonsFollowers[followed].push(nodeName)
         } else {
             PersonsFollowers[followed] = []
-            PersonsFollowers[followed].push(followerName)
+            PersonsFollowers[followed].push(nodeName)
         }
     }
-    
+    console.log(edgeArray);
     var origNodes = new vis.DataSet(nodeArray)
     var nodes  = new vis.DataSet(nodeArray)
     
@@ -115,11 +117,11 @@ function readFile(relationships) {
     };
 
 
-
+    
     // initialize your network!
     var network = new vis.Network(container, data, options);
     network.stabilize();
-
+    
     network.on('click',function(properties) {
         var nodeId = properties.nodes[0];
 
@@ -165,7 +167,7 @@ function readFile(relationships) {
     });
     
 
-
+    
 
 //Context Menu right click logic  
 
@@ -174,7 +176,7 @@ function readFile(relationships) {
     {
         lastRightClicked = network.getNodeAt(properties.pointer.DOM);
         properties.event.preventDefault();
-        
+        console.log(nodeArray.data.total_followers)
        
         $(".custom-menu").finish().toggle(100);
         $(".custom-menu").css({
@@ -224,5 +226,3 @@ function readFile(relationships) {
         }).click();
        }
 }
-
-
