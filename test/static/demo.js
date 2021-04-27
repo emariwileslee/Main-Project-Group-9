@@ -173,13 +173,18 @@ function readFile(data) {
     {
         lastRightClicked = network.getNodeAt(properties.pointer.DOM);
         properties.event.preventDefault();
-        console.log(nodeArray.data.total_followers)
-       
-        $(".custom-menu").finish().toggle(100);
-        $(".custom-menu").css({
-            top: properties.event.pageY + "px",
-            left: properties.event.pageX + "px"
-        });
+        if(lastRightClicked != undefined)
+        {
+            
+            console.log(nodeArray[lastRightClicked].data.total_followers)
+            $(".custom-menu").prepend("<li id='profsum'>Test</li>")
+            $(".custom-menu").finish().toggle(100);
+            $(".custom-menu").css({
+                top: properties.event.pageY + "px",
+                left: properties.event.pageX + "px"
+            });
+        }
+            
     });
 
 
@@ -190,7 +195,8 @@ function readFile(data) {
         if (!$(e.target).parents(".custom-menu").length > 0) {
             
             // Hide it
-            $(".custom-menu").hide(100);
+            $(".custom-menu").hide();
+            $("#profsum").remove();
         }
     });
 
