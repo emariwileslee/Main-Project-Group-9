@@ -39,10 +39,7 @@ function renderGraph(){
 }
 
 function readFile(data) {
-
-
     
-
     var nodeArray = []
     var edgeArray = []
     var PersonsFollowers = []
@@ -69,7 +66,7 @@ function readFile(data) {
             PersonsFollowers[followed].push(nodeName)
         }
     }
-    console.log(edgeArray);
+
     var origNodes = new vis.DataSet(nodeArray)
     var nodes  = new vis.DataSet(nodeArray)
     
