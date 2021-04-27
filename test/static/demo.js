@@ -26,7 +26,7 @@ function findSubNetwork(selected, edgeArray){
 function addToPeopleIdDict(name, nodeArray){
     if (people_ids[name] == undefined){
         people_ids[name] = id_index
-        nodeArray.push({id: id_index, label: name, group: id_index % 5})
+        nodeArray.push({id: id_index, label: name, group: id_index % 5, value: id_index})
         id_index += 1 
 
     } 
@@ -77,14 +77,14 @@ function readFile(relationships) {
     
     // create a network
     var container = document.getElementById('mynetwork');
-    console.log("Container: ")
-    console.log(container)
+    
     // provide the data in the vis format
     var data = {
         nodes: nodes,
         edges: edges
     };
     var options = {
+        
         physics: {
             enabled: false,
             solver: "repulsion",
@@ -92,6 +92,17 @@ function readFile(relationships) {
                 nodeDistance: 400 // Put more distance between the nodes.
             },
         },
+        nodes : {
+            shape : 'hexagon',
+            scaling : {
+                label : false,
+                min : 1, 
+                max: 18
+
+               
+            },
+        },
+            
         edges: {
             arrows: {
                 to:{
@@ -125,7 +136,7 @@ function readFile(relationships) {
 
   //Double click to get subnetwork. 
         var nodeId = properties.nodes[0];
-        
+        console.log(nodeId);
         if(PersonsFollowers[nodeId] != undefined){
             if(lastDoubleClicked != nodeId){
                 var selectedsNetwork = findSubNetwork(nodeId, edgeArray)
