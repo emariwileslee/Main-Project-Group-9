@@ -218,6 +218,7 @@ function readFile(data) {
             // Hide it
             $(".custom-menu").hide();
             $("#profsum").remove();
+
         }
     });
 
@@ -230,7 +231,7 @@ function readFile(data) {
             
             // A case for each action. Your actions here
             case "first": alert("first"); break;
-            case "seeNetwork": alert("second"); break;
+            case "showPost": showPost(); break;
             case "showProfiles": showProfiles(); break;
         }
       
@@ -238,13 +239,19 @@ function readFile(data) {
         $(".custom-menu").hide(100);
       });
       function makeProfileSummary(nodeId){
+            var node = nodeArray[nodeId].data
             var profSummary = "<li id='profsum'>"
-            profSummary += "<p> Total Followers: " + nodeArray[nodeId].data.totalFollowers + "</p>"
-            profSummary += "<p> Total Following: " + nodeArray[nodeId].data.totalFollowing + "</p>"
-
+            profSummary += "<h1>" + node.nodeName + "</h1>"
+            profSummary += "<p>Biography: " + node.bio + "</p>"
+            profSummary += "<span> Total Followers: " + node.totalFollowers + "</span>"
+            profSummary += "<span> Total Following: " + node.totalFollowing + "</span>"
+            profSummary += "<p id = 'totalLikes'>Recent Likes: " + node.totalLikes + "</p>"
 
             profSummary += "</li>"
             return profSummary;
+      }
+      function showPost(){
+            openInNewTab(nodeArray[lastRightClicked].data.rootPostUrl);
       }
       function showProfiles(){
         
