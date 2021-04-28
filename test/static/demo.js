@@ -238,14 +238,19 @@ function readFile(data) {
         // Hide it AFTER the action was triggered
         $(".custom-menu").hide(100);
       });
+     
       function makeProfileSummary(nodeId){
             var node = nodeArray[nodeId].data
             var profSummary = "<li id='profsum'>"
             profSummary += "<h1>" + node.nodeName + "</h1>"
             profSummary += "<p>Biography: " + node.bio + "</p>"
-            profSummary += "<span> Total Followers: " + node.totalFollowers + "</span>"
-            profSummary += "<span> Total Following: " + node.totalFollowing + "</span>"
-            profSummary += "<p id = 'totalLikes'>Recent Likes: " + node.totalLikes + "</p>"
+            profSummary += "<p id = 'totalLikes'>Average Likes: " + parseInt(node.totalLikes /3)  + "</p>"
+            profSummary += "<h3>Followers</h3>"
+            profSummary += "<p> Total Followers: " + node.totalFollowers + "</p>"
+            profSummary += "<p> Related to Trend: 53% </p>"
+            profSummary += "<h3>Following</h3>"
+            profSummary += "<p> Total Following: " + node.totalFollowing + "</p>"
+            profSummary += "<p> Related To Trend: 24% </p>"
 
             profSummary += "</li>"
             return profSummary;
