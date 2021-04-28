@@ -27,7 +27,7 @@ function addToPeopleIdDict(nodeArray, newNode){
     if (people_ids[newNode.nodeName] == undefined){
         people_ids[newNode.nodeName] = id_index
         //size is controlled by value
-        nodeArray.push({id: id_index, label: newNode.nodeName, group: id_index % 5, value: id_index + 3, data : newNode})
+        nodeArray.push({id: id_index, label: newNode.nodeName, group: id_index % 5, value: newNode.totalFollowers, data : newNode})
         id_index += 1 
 
     } 
@@ -93,6 +93,7 @@ function readFile(data) {
     };
     var options = {
         
+        
         physics: {
             enabled: false,
             solver: "repulsion",
@@ -102,13 +103,21 @@ function readFile(data) {
         },
         nodes : {
             shape : 'hexagon',
-            heightConstraint : {
-                minimum : 50,
-            },
+            
             scaling : {
-                label : false,
-                min : 1, 
-                max: 18
+               
+                min : 20, 
+                max: 100,
+                customScalingFunction: function (min,max,total,value) {
+                    if (max === min) {
+                        return 0.5;
+                    }
+                    else {
+                        let scale = 1 / (max - min);
+                        console.log(value)
+                        return Math.max(0,((value)*scale));
+                    }
+                }
 
                
             },
