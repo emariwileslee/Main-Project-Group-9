@@ -3,8 +3,10 @@
     "",
     "\\SNACC_Mapper",
     "\\SNACC_Mapper\\Output",
-    "\\SNACC_Visual"
+    "\\test",
+    "\\test\\static",
+    "\\test\\templates"
   ],
-  "SelectedNode": "\\test",
+  "SelectedNode": "\\test\\templates\\visualize.html",
   "PreviewInSolutionExplorer": false
 }
