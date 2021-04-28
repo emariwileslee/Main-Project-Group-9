@@ -23,15 +23,15 @@ function findSubNetwork(selected, edgeArray){
     return selectedsNetwork;
 }
 
-function addToPeopleIdDict(nodeArray, name, total_followers = -1){
-    if (people_ids[name] == undefined){
-        people_ids[name] = id_index
+function addToPeopleIdDict(nodeArray, newNode){
+    if (people_ids[newNode.nodeName] == undefined){
+        people_ids[newNode.nodeName] = id_index
         //size is controlled by value
-        nodeArray.push({id: id_index, label: name, group: id_index % 5, value: id_index, data : {total_followers: total_followers}})
+        nodeArray.push({id: id_index, label: newNode.nodeName, group: id_index % 5, value: id_index + 3, data : newNode})
         id_index += 1 
 
     } 
-    return people_ids[name]
+    return people_ids[newNode.nodeName]
 }
 function renderGraph(){
     //var ready  = await checkIfLoaded()
@@ -46,24 +46,33 @@ function readFile(data) {
 
     //12 used to be 9 for follow-demo.csv.. HAVE TO CHANGE AGAIN IF HEADERS CHANGE ( eventually make it so it just parses until the ":")
     for (var i = 0; i < data.length; i++){
-        parentNodeName = data[i].parent_node
-        nodeName = data[i].username
-        connectionType = data[i].connection_type
-        total_followers = data[i].total_followers;
-        follower = addToPeopleIdDict(nodeArray, nodeName, total_followers = total_followers)
-        followed  = people_ids[parentNodeName]
+        var newNode = {
+            parentNodeName : data[i].parent_node,
+            nodeName : data[i].username,
+            connectionType : data[i].connection_type,
+            bio : data[i].bio,
+            totalLikes : data[i].total_likes,
+            totalFollowers : data[i].total_followers,
+            totalFollowing : data[i].total_following,
+            profileImgUrl : data[i].profile_img_url,
+            rootPostUrl : data[i].root_post_url
+        }
         
-        if (connectionType != 'ROOT'){
+
+
+        follower = addToPeopleIdDict(nodeArray, newNode)
+        followed  = people_ids[newNode.parentNodeName]
+        
+        if (newNode.connectionType != 'ROOT'){
             edgeArray.push({from: followed, to: follower})
         }
-            
-
+        
         if(PersonsFollowers[followed] != undefined){
 
-            PersonsFollowers[followed].push(nodeName)
+            PersonsFollowers[followed].push(newNode.nodeName)
         } else {
             PersonsFollowers[followed] = []
-            PersonsFollowers[followed].push(nodeName)
+            PersonsFollowers[followed].push(newNode.nodeName)
         }
     }
 
@@ -93,6 +102,9 @@ function readFile(data) {
         },
         nodes : {
             shape : 'hexagon',
+            heightConstraint : {
+                minimum : 50,
+            },
             scaling : {
                 label : false,
                 min : 1, 
@@ -135,7 +147,6 @@ function readFile(data) {
 
   //Double click to get subnetwork. 
         var nodeId = properties.nodes[0];
-        console.log(nodeId);
         if(PersonsFollowers[nodeId] != undefined){
             if(lastDoubleClicked != nodeId){
                 var selectedsNetwork = findSubNetwork(nodeId, edgeArray)
@@ -172,12 +183,13 @@ function readFile(data) {
     network.on("oncontext", function (properties) 
     {
         lastRightClicked = network.getNodeAt(properties.pointer.DOM);
+        
+        console.log(lastRightClicked)
         properties.event.preventDefault();
         if(lastRightClicked != undefined)
         {
             
-            console.log(nodeArray[lastRightClicked].data.total_followers)
-            $(".custom-menu").prepend("<li id='profsum'>Test</li>")
+            $(".custom-menu").prepend(makeProfileSummary(lastRightClicked))
             $(".custom-menu").finish().toggle(100);
             $(".custom-menu").css({
                 top: properties.event.pageY + "px",
@@ -216,7 +228,15 @@ function readFile(data) {
         // Hide it AFTER the action was triggered
         $(".custom-menu").hide(100);
       });
+      function makeProfileSummary(nodeId){
+            var profSummary = "<li id='profsum'>"
+            profSummary += "<p> Total Followers: " + nodeArray[nodeId].data.totalFollowers + "</p>"
+            profSummary += "<p> Total Following: " + nodeArray[nodeId].data.totalFollowing + "</p>"
 
+
+            profSummary += "</li>"
+            return profSummary;
+      }
       function showProfiles(){
         
         var name = nodeArray[lastRightClicked].label
