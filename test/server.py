@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 def hello():  
     data = []
-    with open('output.csv', newline = '') as csvfile:
+    with open('output1.csv', newline = '') as csvfile:
         rows = csv.reader(csvfile, delimiter=",")
         i = 0
         for row in rows:
