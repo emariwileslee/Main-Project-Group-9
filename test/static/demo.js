@@ -7,7 +7,7 @@ var nodeArray = []
 var edgeArray = []
 var PersonsFollowers = []
 
-$(document).ready(renderGraph());
+$(document).ready(renderGraph(data));
 
 function findSubNetwork(selected, edgeArray){
     var selectedsNetwork = []
@@ -23,9 +23,10 @@ function findSubNetwork(selected, edgeArray){
     return selectedsNetwork;
 }
 
-function addToPeopleIdDict(nodeArray, newNode){
+function createNodeAndID(nodeArray, newNode){
     if (people_ids[newNode.nodeName] == undefined){
         people_ids[newNode.nodeName] = id_index
+
         //size is controlled by value
         nodeArray.push({id: id_index, label: newNode.nodeName, group: id_index % 5, value: newNode.totalFollowers, data : newNode})
         id_index += 1 
@@ -33,13 +34,10 @@ function addToPeopleIdDict(nodeArray, newNode){
     } 
     return people_ids[newNode.nodeName]
 }
-function renderGraph(){
-    //var ready  = await checkIfLoaded()
-    readFile(data)
-}
 
-function readFile(data) {
-    
+
+function renderGraph(data) 
+{
     var nodeArray = []
     var edgeArray = []
     var PersonsFollowers = []
@@ -60,8 +58,8 @@ function readFile(data) {
         
 
 
-        follower = addToPeopleIdDict(nodeArray, newNode)
-        followed  = people_ids[newNode.parentNodeName]
+        follower = createNodeAndID(nodeArray, newNode);
+        followed  = people_ids[newNode.parentNodeName];
         
         if (newNode.connectionType != 'ROOT'){
             edgeArray.push({from: followed, to: follower})
@@ -114,7 +112,7 @@ function readFile(data) {
                     }
                     else {
                         let scale = 1 / (max - min);
-                        console.log(value)
+                        
                         return Math.max(0,((value)*scale));
                     }
                 }
@@ -152,33 +150,13 @@ function readFile(data) {
         
     })
     var lastDoubleClicked = -1;
-    network.on('doubleClick', function(properties){ 
+    network.on('doubleClick', function(properties)
+    { 
 
-  //Double click to get subnetwork. 
+    //Double click behavior. 
         var nodeId = properties.nodes[0];
         if(PersonsFollowers[nodeId] != undefined){
-            if(lastDoubleClicked != nodeId){
-                var selectedsNetwork = findSubNetwork(nodeId, edgeArray)
-                for(var i = 0; i < nodeArray.length; i++){
-                    if (!selectedsNetwork.includes(i) && i != nodeId){
-                        try {
-                          nodes.remove({ id: i });
-                        } catch (err) {
-                          alert(err);
-                        }
-                    }
-                }
-                lastDoubleClicked = nodeId
-            } else{
-                
-                
-                data = {
-                    nodes: origNodes,
-                    edges: origEdges
-                };
-                network = new vis.Network(container, data, options);
-                network.redraw()
-            }
+            //do whatever you want here. and not like when your girl tells you "do whatever you want" but you know damn well she's gonna get upset if you do the thing in question. You really can do whatever you want here I promise I won't get mad
         }
 
     });
@@ -186,9 +164,9 @@ function readFile(data) {
 
     
 
-//Context Menu right click logic  
+    //Context Menu right click logic  
 
-  // Trigger action when the contexmenu is about to be shown
+     // Trigger action when the contexmenu is about to be shown
     network.on("oncontext", function (properties) 
     {
         lastRightClicked = network.getNodeAt(properties.pointer.DOM);
