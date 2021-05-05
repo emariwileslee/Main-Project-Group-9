@@ -16,3 +16,4 @@ def hello():
                 data.append(row)
             i += 1
         return render_template('visualize.html', data=data)
+
