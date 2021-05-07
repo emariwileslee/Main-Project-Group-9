@@ -15,6 +15,5 @@ def index(request):
             if i != 0:
                 data.append(row)
             i += 1
-            print(row)
-        context["data"] = data
+        context["connections"] = data
         return render(request, "network/index.html", context)
