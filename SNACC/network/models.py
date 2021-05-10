@@ -7,6 +7,10 @@ class Account(models.Model):
     average_likes = models.IntegerField(blank=True, null=True)
     num_followers = models.IntegerField()
     num_following = models.IntegerField()
+    account_type = models.CharField(max_length=40)
+
+    class Meta:
+       indexes = [ models.Index(fields=['username', 'account_type']) ]
 
 class Connection(models.Model):
     to = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='to_connections')
