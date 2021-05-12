@@ -11,6 +11,7 @@ class Account(models.Model):
 
     class Meta:
        indexes = [ models.Index(fields=['username', 'account_type']) ]
+       unique_together = ('username', 'account_type',)
 
 class Connection(models.Model):
     to = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='to_connections')
