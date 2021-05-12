@@ -47,13 +47,11 @@
     </ul>
     <script>
         
-        var data = []
-        {% for d in connections %}
-            var incomingNode = {{d | safe}}
-            contents = {parent_node : incomingNode[0], username : incomingNode[1] , connection_type: incomingNode[2], bio : incomingNode[3], 
-            captions : incomingNode[4], total_likes : incomingNode[5], total_followers:  incomingNode[6], total_following : incomingNode[7], 
-            profile_img_url : incomingNode[8], root_post_url : incomingNode[9]}
-            data.push(contents)
+        var accounts = []
+        {% for a in accounts %}
+            
+            var contents = {username : "{{a.username}}", nickname : "{{a.nickname}}"}
+            accounts.push(contents)
         {% endfor %}
         
     </script>

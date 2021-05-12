@@ -7,7 +7,7 @@ var nodeArray = []
 var edgeArray = []
 var PersonsFollowers = []
 
-$(document).ready(renderGraph(data));
+$(document).ready(renderGraph(accounts));
 
 function findSubNetwork(selected, edgeArray){
     var selectedsNetwork = []
@@ -30,14 +30,15 @@ function createNodeAndID(nodeArray, newNode){
         //size is controlled by value
         nodeArray.push({id: id_index, label: newNode.nodeName, group: id_index % 5, value: newNode.totalFollowers, data : newNode})
         id_index += 1 
-
     } 
     return people_ids[newNode.nodeName]
 }
 
 
-function renderGraph(data) 
+function renderGraph(accounts) 
 {
+    console.log(accounts)
+    /*
     console.log(data);
     var nodeArray = []
     var edgeArray = []
@@ -248,4 +249,5 @@ function renderGraph(data)
             href: href,
         }).click();
        }
+       */
 }
