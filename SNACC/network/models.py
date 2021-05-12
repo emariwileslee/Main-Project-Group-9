@@ -5,8 +5,8 @@ class Account(models.Model):
     nickname = models.CharField(max_length=100, blank=True, null = True)
     bio = models.CharField(max_length=300, blank=True, null = True)
     average_likes = models.IntegerField(blank=True, null=True)
-    num_followers = models.IntegerField()
-    num_following = models.IntegerField()
+    num_followers = models.IntegerField(blank = True, null = True)
+    num_following = models.IntegerField(blank = True, null = True)
     account_type = models.CharField(max_length=40)
 
     class Meta:
