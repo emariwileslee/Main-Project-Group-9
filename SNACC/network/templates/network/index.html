@@ -12,7 +12,8 @@
             border: 1px solid lightgray;
         }
     </style>
-    <link rel="stylesheet" href="{{ url_for('static', filename='demo.css') }}">
+    {% load static %}
+    <link rel="stylesheet" type = "text/css" href="static/network/demo.css">
 </head>
 <body>
     <div id="navbar">
@@ -20,11 +21,11 @@
             <div class="dropdown">
                 <button class="dropbtn" id="connectypebutt">Legend</button>
                 <div class="dropdown-content">
-                <img src = {{ url_for('static', filename='Legend.png')}} height="200" width="300">
+                <img src = "static/network/Legend.png" height="200" width="300">
                 </div>
             </div>
         </div>
-        <img src = {{ url_for('static', filename='SNACCLogo.png') }} height="70" width="70" id="logo">
+        <img src = "static/network/SNACCLogo.png" height="70" width="70" id="logo">
         <div id ="connectype">
             <span id="connectypelabel">Connection Type:     </span>
             <div class="dropdown">
@@ -46,15 +47,27 @@
     </ul>
     <script>
         
-        var data = []
-        {% for d in data %}
-            contents = {parent_node : "{{d[0]}}", username : "{{d[1]}}" , connection_type: "{{d[2]}}", bio : "{{d[3]}}", 
-            captions : "{{d[4]}}", total_likes : "{{d[5]}}", total_followers:  "{{d[6]}}", total_following : "{{d[7]}}", 
-            profile_img_url : "{{d[8]}}", root_post_url : "{{d[9]}}"}
-            data.push(contents)
+        var accounts = []
+        {% for a in accounts %}
+            
+            var contents = {id : "{{a.id}}", username : "{{a.username}}", nickname : "{{a.nickname}}", bio : "{{a.bio}}", average_likes : "{{a.average_likes}}", num_followers : "{{a.num_followers}}", num_following : "{{a.account_type}}" }
+            accounts.push(contents)
+        {% endfor %}
+        var connections = []
+        {% for c in connections %}
+            
+            var contents = {to : "{{c.to.id}}", fro : "{{c.fro.id}}", connection_type : "{{c.connection_type}}"}
+
+            connections.push(contents)
+
         {% endfor %}
         
+
+        
+
+
     </script>
-    <script type="text/javascript" src={{ url_for('static', filename='demo.js') }}></script>
+
+    <script type="text/javascript" src= "static/network/demo.js"></script>
 </body>
 </html>
