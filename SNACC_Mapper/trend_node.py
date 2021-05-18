@@ -13,12 +13,16 @@ class node():
         self.child_connections = [np.array([],dtype=object),np.array([],dtype=object),np.array([],dtype=object),np.array([],dtype=object),np.array([],dtype=object)]
         self.username = ""
         self.connection_type = ""
+        self.bio = ""
         self.captions = []
         self.total_likes = 0
         self.total_followers = 0
         self.total_following = 0
         self.post_date = ""
         self.root_post_url = ""
+        self.profile_img_url = ""
+        #This is selector for profile image
+        ##react-root > section > main > div > header > div > div > span > img
     
     def printNode(self):
         print("parent node: ",self.parent_node)
@@ -32,11 +36,11 @@ class nodeClassifier():
     def __init__(self,output_location):
         self.node_list = []
         self.output_location = output_location
-        self.node_df = pd.DataFrame(columns=["parent_node","username","connection_type"])
+        self.node_df = pd.DataFrame(columns=["parent_node","username","connection_type","bio","captions","total_likes","total_followers","total_following","profile_img_url","root_post_url"])
         
     def addNode(self,node):#(self,parent_node,username,connection_type):
         #nodeBuffer = [parent_node,username,connection_type]
-        nodeBuffer = [node.parent_node,node.username,node.connection_type]
+        nodeBuffer = [node.parent_node,node.username,node.connection_type,node.bio,'foo',node.total_likes,node.total_followers,node.total_following,node.profile_img_url,node.root_post_url]
         self.node_df = self.node_df.append(pd.Series(nodeBuffer,index=self.node_df.columns),ignore_index=True)
         self.node_list.append(node)
         #print(self.node_df)

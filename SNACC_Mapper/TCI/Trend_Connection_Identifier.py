@@ -27,7 +27,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import nltk
 import os
-nltk_data_loc=r'C:\Users\emari\Documents\Github-Projects\SNACC\SNACC_Mapper\TCI\nltk_data' 
+nltk_data_loc=r'.\nltk_data' #r'C:\Users\emari\Documents\Github-Projects\SNACC\SNACC_Mapper\TCI\nltk_data' 
 os.environ['NLTK_DATA'] = nltk_data_loc
 #print("downloading stopwords and punkt")
 #nltk.download('stopwords',download_dir=nltk_data_loc)#,quiet=log_flag)
@@ -37,18 +37,15 @@ import numpy as np
 import time
 
 class TCI():
-    def __init__(self):
-        self.filename = 'TCI/GoogleNews-vectors-negative300.bin'
+    def __init__(self,num_of_clusters):
+        self.filename = '../TCI/GoogleNews-vectors-negative300.bin'
         self.sample_list = []
         self.sample_list_sen = []
         self.np_centroid = np.array([])
         self.model = KeyedVectors.load_word2vec_format(self.filename,binary=True)#Word2Vec(self.filename,min_count=1)
         self.vector_size = self.model.vector_size
-        self.NUM_CLUSTERS = 3
-        #self.kclusterer = KMeansClusterer(self.NUM_CLUSTERS, distance=nltk.cluster.util.cosine_distance, repeats=25)
-        #X = self.model[self.model.vocab]
-        #self.assigned_clusters = self.kclusterer.cluster(X, assign_clusters=True)
-        #print(self.assigned_clusters)
+        self.NUM_CLUSTERS = num_of_clusters
+        self.score_list = None
         #words = list(self.model.vocab)
         #for i, word in enumerate(words):  
             #print (word + ":" + str(self.assigned_clusters[i]))
@@ -103,8 +100,20 @@ class TCI():
             mean = np.array(mean).mean(axis=0)
             mean = mean.reshape(1,300)
             return mean
+    
+    def sampleVectorCompile(self):
+        np_score_list = np.empty((0,300))
+        for i in range(len(self.sample_list_sen)):
+            #print('Current string value being added from sample list: ', self.sample_list_sen[i])
+            try:
+                np_score_list = np.append(np_score_list,self.sampleVectorMean(self.sample_list_sen[i]),axis=0)
+            except:
+                pass
+        self.score_list = np_score_list
+        return np_score_list
         
-    def sampleSenTrendMean(self):
+    
+    def sampleSenTrendMean(self):#DEPRECATED USED FOR CENTROID OF ALL SENTENCES AS A WHOLE
         np_score_list = np.empty((0,300))
         for i in range(len(self.sample_list_sen)):
             #print('Current string value being added from sample list: ', self.sample_list_sen[i])
@@ -115,15 +124,27 @@ class TCI():
         
         self.np_centroid = np.mean(np_score_list,axis=0)
         return self.np_centroid
-        
+    
+    
+    
     def distanceCentroid(self,test_string):
         ts_vector = self.sampleVectorMean(test_string).reshape(300,)
         
         distance = np.linalg.norm(self.np_centroid - ts_vector)
         return distance
     
-    '''def kmeans(self):
-        words = list(self.model.vocab)
-        for i, word in enumerate(words):  
-            print (word + ":" + str(self.assigned_clusters[i]))'''
+    def kmeans(self):
+        self.kclusterer = KMeansClusterer(self.NUM_CLUSTERS, distance=nltk.cluster.util.cosine_distance, repeats=25)
+        self.sampleVectorCompile()
+        vectors = self.score_list#[np.array(f) for f in self.sample_list_sen]
+        self.assigned_clusters = self.kclusterer.cluster(vectors, assign_clusters=True)
+        #print(self.assigned_clusters)
+        print('Clustered:', vectors)
+        print('As:', self.assigned_clusters)
+        print('Means:', self.kclusterer.means())
+        print()
+        return self.kclusterer.means()
     
+    def sample_list_sen_func(self):
+        return self.sample_list_sen
+        

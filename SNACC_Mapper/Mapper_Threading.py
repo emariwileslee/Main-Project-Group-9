@@ -28,6 +28,7 @@ class MT_Mapper():
         global node_db
         node_db = node_database
         self.start = time.time()
+        self.MAX_LOAD = 150
         #username = "snackertestunit00"
         #password = "Ca4SraTX3pvYuw8"
         self.root_profile = node_db.node_list[0].username#"sgatfau"#"fauorientation"
@@ -49,13 +50,13 @@ class MT_Mapper():
         self.threadArray = np.empty((self.MAX_THREADS+2,),dtype=object)
 
     def threadInitialize(self):
-        self.threadArray[0] = myThreads(0,"Thread-0",0,self.url,initialEvent,self.PLATFORM_MODE,self.OPERATION_MODE,self.driver)
+        self.threadArray[0] = myThreads(0,"Thread-0",0,self.url,initialEvent,self.MAX_LOAD,self.MAX_THREADS,self.PLATFORM_MODE,self.OPERATION_MODE,self.driver)
         self.threadArray[0].start()
         print("Thread 0 Started")
         for i in range(1,self.MAX_THREADS):
             #print("I got here")
             initialEvent.wait()
-            self.threadArray[i] = myThreads(i,"Thread-%d"%i,i,self.url,initialEvent,self.PLATFORM_MODE,self.OPERATION_MODE)
+            self.threadArray[i] = myThreads(i,"Thread-%d"%i,i,self.url,initialEvent,self.MAX_LOAD,self.MAX_THREADS,self.PLATFORM_MODE,self.OPERATION_MODE)
             print("Creating ", self.threadArray[i].name)
             #print("Initial thread complete")
             self.threadArray[i].start()
@@ -82,7 +83,7 @@ class MT_Mapper():
                 return node_db
        
 class myThreads(threading.Thread):
-   def __init__(self, threadID, name, counter, url, event, plat_flag=True,op_type=True,root_driver=None):
+   def __init__(self, threadID, name, counter, url, event, MAX_LOAD, MAX_THREADS,plat_flag=True,op_type=True,root_driver=None):
       global root_profile
       global output_location
       #print("Thread Initialized")
@@ -95,14 +96,21 @@ class myThreads(threading.Thread):
       self.counter = counter
       self.url = url
       self.parent_node = root_profile
+      self.current_load = 0
+      self.MAX_LOAD = MAX_LOAD
+      self.MAX_THREADS = MAX_THREADS
+      self.account_cycle = 1
       #self.currentLoad = 0
-      self.ROWS = 2
+      if plat_flag == True:
+          self.ROWS = 2
+      else:
+          self.ROWS = 3
       self.COLUMNS = 1
-      self.KEYWORD = ["FAU","Orienation","Owls","Boca","Florida","Atlantic","University","#fau"] 
+      self.KEYWORD = ["Armenia","Armenian","Armenian Genocide","armeniangenocide","#armeniangenocide","turkeyfailed","genocide","ottoman","turk","turkey","1915","#1915","artsakh"]#["FAU","Orienation","Owls","Boca","Florida","Atlantic","University","#fau"] 
       self.event_obj = event
       #self.startFlag = self.event_obj.wait()
-      self.username = ['snackertest99','snackertestunit00','fullmetal1699']#'ewltest99'#"jksnacker00"#"snackertestunit00"#'jksnacker00'
-      self.password = ['Ca4SraTX3pvYuw8','Ca4SraTX3pvYuw8','x&X$$qkjFMct']#"ESctQtHDKxa56we"#'ESctQtHDKxa56we'
+      self.username = ['snackertest99','ewcatlan','jssnackmore','sablernat','jcsnaccFAU','snackertestunit00','worilber',]#'ewltest99'#"jksnacker00"#"snackertestunit00"#'jksnacker00'
+      self.password = ['KC^&0ecp%8%o','mfW!bcX0#*o5','Uf8w#Cy6jm4B','I03lYJUL&TD&','BaiK16*0spB$','Ca4SraTX3pvYuw8','Uka^CxqusZmW',]#"ESctQtHDKxa56we"#'ESctQtHDKxa56we'
       print("ACTIVE THREADS CURRENTLY: ", threading.active_count())
     
    def run(self):
@@ -118,9 +126,9 @@ class myThreads(threading.Thread):
       global node_db
       global tci_inst
       global threadQueue
-      global num_of_roots
+      global num_of_nodes
       threadQueue=1
-      num_of_roots = len(node_db.node_list)
+      num_of_nodes = len(node_db.node_list)
       #tci_inst = TCI()
       print("****GOOGLE WORD2VEC DATABASE LOAD COMPLETE****")
       initialUserList = [np.array([],dtype=object),np.array([],dtype=object),np.array([],dtype=object),np.array([],dtype=object),np.array([],dtype=object)]
@@ -164,7 +172,7 @@ class myThreads(threading.Thread):
               print(node_db.node_list[0].child_connections[i])
       for k in range(len(node_db.node_list)):    
           for i in range(len(node_db.node_list[k].child_connections)):  
-              currentLoad.append(floor(len(node_db.node_list[0].child_connections[i]) / 3))#CHANGE THIS 6 TO ADUST LOAD FOR RIGHT NOW
+              currentLoad.append(floor(len(node_db.node_list[k].child_connections[i]) / 3))#CHANGE THIS 6 TO ADUST LOAD FOR RIGHT NOW
       #instance.Insta_User_Branching(3,1,KEYWORD)# ROWS, COLUMNS
       
       #sleep(5)
@@ -191,6 +199,7 @@ class myThreads(threading.Thread):
       global threadQueue
       global threadCounter
       global gl_cycle_counter
+      global num_of_nodes
       threadCounter = 0
       gl_cycle_counter = 1
       index = []
@@ -214,18 +223,32 @@ class myThreads(threading.Thread):
       instance.login(self.username[(self.threadID-1)],self.password[(self.threadID-1)])
       instance.seedSelect()
       #THIS IS THE ACTUAL PATHING SECTION OF THE CODE
-      for lists in range(1,len(node_db.node_list[0].child_connections)):
-          self.MapperNodeCollection(instance, node_db.node_list[0].child_connections,index, lists)
+      for k in range(0,len(node_db.node_list)):
+          for lists in range(1,len(node_db.node_list[k].child_connections)):
+              self.MapperNodeCollection(instance, node_db.node_list[0].child_connections,index, lists)
+          if threading.active_count()<9:
+              break
       
       print("Layer 1 Connections Complete in Thread {0}".format(self.threadID))
       threadQueue+=1
       threadCounter=0
-      while(threadQueue<3):
+      while(threadQueue<3 or threading.active_count()>8):
           pass
-      threadCounter+=1
+      '''if threadCounter<1:
+          threadCounter+=3
+          for i in range(2,len(node_db.node_list)):
+              for k in range(len(node_db.node_list[i].child_connections[1])):
+                  bufferNode = node()
+                  bufferNode.parent_node = node_db.node_list[i].username
+                  bufferNode.username = node_db.node_list[i].child_connections[1][k]
+                  bufferNode.connection_type = 'like'
+                  node_db.addNode(bufferNode)
+          node_db.exportNetwork()
+          threadCounter+=2'''
       if threadCounter>=3:
-          threadQueue=0
+          #threadQueue=0
           #threadCounter=0
+          threadQueue=0    
       
       print("ALL THREADS COMPLETE\n ")
       
@@ -246,7 +269,7 @@ class myThreads(threading.Thread):
           bufferList.append(node_db.node_list[i].child_connections[1])
       print(bufferList)
       
-      for lists in list_length:
+      for lists in range(list_length):
           self.parent_node = node_db.node_list[lists].username
           print("Thread: {2} Cycle: {0} Size of child connections: {1}\n".format(lists,len(node_db.node_list[lists].child_connections[1]),self.threadID))
           current_load_buffer = []
@@ -263,7 +286,7 @@ class myThreads(threading.Thread):
           index = index_buffer
           print("Thread {3}: This is the position in the node_list: {0}\n This is threadQueue: {1}\n This is threadCounter: {2}\n".format(lists,threadQueue,threadCounter,self.threadID))
           
-          self.MapperNodeCollection(instance, node_db.node_list[lists].child_connections,index, lists)
+          self.MapperNodeCollection(instance, node_db.node_list[lists].child_connections,index, 1)
           try:
               node_db.exportNetwork()
           except:
@@ -310,21 +333,31 @@ class myThreads(threading.Thread):
    def MapperNodeCollection(self,driver_instance, username_list,index,lists):
        global tci_inst
        global node_db
-       global num_of_roots
+       global num_of_nodes
        bufferNode = node()
+       
        #print("I got here, ThreadID: {0}".format(self.threadID))
-       if self.threadID==1 and gl_cycle_counter==1:
-              for i in username_list[lists][num_of_roots:currentLoad[lists]]:
-                  #print("I got here too1, ThreadID: {0}".format(self.threadID))
-                  #print(i)
-                  #node_db.addNode(root_node, i,'unknown')
+       if self.threadID==1:#and gl_cycle_counter==1:
+              for i in username_list[lists][0:currentLoad[lists]]:
+                  if(self.current_load>=self.MAX_LOAD and self.account_cycle<2):
+                       driver_instance.logout()
+                       driver_instance.login(self.username[(self.threadID-1)+(self.MAX_THREADS*self.account_cycle)],self.password[(self.threadID-1)+(self.MAX_THREADS*self.account_cycle)])
+                       self.account_cycle+=1
+                       self.current_load = 0
+                  else:
+                      pass
+                  self.current_load+=1
+                  print("Thread: {0}  Load:{1}".format(self.threadID,self.current_load))
                   if self.operation_flag == True and self.platform_flag == True:
                       currentURL = "https://www.instagram.com/"+i+"/"
                       driver_instance.userRedirect(currentURL)
                   elif self.operation_flag == True and self.platform_flag == False:
                       currentURL = "https://www.twitter.com/"+i+"/"
                       driver_instance.userRedirect(currentURL)
-                  bufferNode = driver_instance.page_nav(self.ROWS,self.COLUMNS, self.KEYWORD)
+                  if self.operation_flag == True and self.platform_flag == True:
+                      bufferNode = driver_instance.page_nav(self.ROWS,self.COLUMNS, self.KEYWORD)
+                  elif self.operation_flag == True and self.platform_flag == False:
+                      bufferNode = driver_instance.page_nav(self.ROWS, self.KEYWORD)
                   if bufferNode != False:
                       bufferNode.parent_node = self.parent_node
                       bufferNode.username = i
@@ -339,6 +372,7 @@ class myThreads(threading.Thread):
                           bufferNode.connection_type = 'following' 
 
                       node_db.addNode(bufferNode)
+                      node_db.exportNetwork()
                       #for i in range(len(bufferNode.captions)):
                           #tci_inst.addSample(bufferNode.captions[i])
                   else:
@@ -349,6 +383,15 @@ class myThreads(threading.Thread):
                   #print("I got here too2, ThreadID: {0}".format(self.threadID))
                   #print(i)
                   #node_db.addNode(root_node, i,'unknown')
+                  if(self.current_load>=self.MAX_LOAD and self.account_cycle<3):
+                       driver_instance.logout()
+                       driver_instance.login(self.username[(self.threadID-1)+(self.MAX_THREADS*self.account_cycle)],self.password[(self.threadID-1)+(self.MAX_THREADS*self.account_cycle)])
+                       self.account_cycle+=1
+                       self.current_load = 0
+                  else:
+                      pass
+                  self.current_load+=1
+                  print("Thread: {0}  Load:{1}".format(self.threadID,self.current_load))
                   if self.operation_flag == True and self.platform_flag == True:
                       currentURL = "https://www.instagram.com/"+i+"/"
                       driver_instance.userRedirect(currentURL)
@@ -368,8 +411,12 @@ class myThreads(threading.Thread):
                           bufferNode.connection_type = 'follower'
                       elif lists == 4:
                           bufferNode.connection_type = 'following'    
-
-                      node_db.addNode(bufferNode)
+                      dupe_flag = False    
+                      for j in range(len(node_db.node_list)):
+                          if node_db.node_list[j].username == bufferNode.username:
+                              dupe_flag = True
+                      if dupe_flag != True:
+                          node_db.addNode(bufferNode)
                       #for i in range(len(bufferNode.captions)):
                           #tci_inst.addSample(bufferNode.captions[i])
                   else:
@@ -415,46 +462,6 @@ class myThreads(threading.Thread):
 
 #instance = MT_Mapper()
 
-r'''            
-#print("Program Started 69")
-start = time.time()
-#username = "snackertestunit00"
-#password = "Ca4SraTX3pvYuw8"
-root_profile = "sgatfau"#"fauorientation"
-url = "https://www.instagram.com/"+root_profile+"/"#"https://www.instagram.com/explore/tags/als/"
-#redirect_url = "https://www.instagram.com/fauhousing/live/"
-output_location = r'C:\Users\emari\Documents\Github-Projects\SNACC\SNACC_Mapper\Output'#r'C:\Users\emari\Documents\Engineering Design 1\Trend Network Mapper Prototype\Web Scraping\Scrapped Content'
-#KEYWORD = ["FAU","Owls"]
-START_THREADS = threading.active_count()
-MAX_THREADS = 3#Starts at 0, Must be at least 1
-MAX_THREADS += 1
-OPERATION_MODE = True #True is Mapper || False is Post Collector
-PLATFORM_MODE = True #True is Instagram || False is Twitter
-exit_flag = False
-
-initialEvent = threading.Event()
-threadArray = np.empty((MAX_THREADS+2,),dtype=object)
-
-threadArray[0] = myThreads(0,"Thread-0",0,url,initialEvent,PLATFORM_MODE,OPERATION_MODE)
-threadArray[0].start()
-print("Thread 0 Started")
-for i in range(1,MAX_THREADS):
-    #print("I got here")
-    initialEvent.wait()
-    threadArray[i] = myThreads(i,"Thread-%d"%i,i,url,initialEvent,PLATFORM_MODE,OPERATION_MODE)
-    print("Creating ", threadArray[i].name)
-    #print("Initial thread complete")
-    threadArray[i].start()
-    #print("ACTIVE THREADS CURRENTLY: ",threadArray[i].active_count())
-    #threadArray[i].join()
-
-while not exit_flag:
-    if not threading.active_count()>START_THREADS:
-        exit_flag = True
-        threadArray[MAX_THREADS+1] = myThreads(MAX_THREADS+1,"Final Thread",MAX_THREADS+1,url,initialEvent,PLATFORM_MODE,OPERATION_MODE)
-        threadArray[MAX_THREADS+1].printGlobalinitialUserList()
-        end = time.time()
-        print("Execution Time: ",end-start, " seconds")'''
         
 #threadArray[MAX_THREADS+1] = myThreads(MAX_THREADS+1,"Final Thread",MAX_THREADS+1,url,initialEvent)
 #threadArray[MAX_THREADS+1].printGlobalinitialUserList()

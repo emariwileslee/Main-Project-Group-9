@@ -110,9 +110,11 @@ class InstaScrape():
     
   def logout(self):#This is used to log out of a user account
     #This clicks the profile menu
-    self.driver.find_element(By.CSS_SELECTOR, ".qNELH > .\\_6q-tv").click()
+    sleep(3)
+    self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > nav > div._8MQSO.Cx7Bp > div > div > div.ctQZg > div > div:nth-child(5) > span").click()#self.driver.find_element(By.CSS_SELECTOR, ".qNELH > .\\_6q-tv").click()
     #This clicks the logout button
-    self.driver.find_element(By.XPATH, "//div[2]/div[2]/div/div/div/div/div/div/div").click()
+    sleep(2)
+    self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > nav > div._8MQSO.Cx7Bp > div > div > div.ctQZg > div > div:nth-child(5) > div.poA5q > div.uo5MA._2ciX.tWgj8.XWrBI > div._01UL2 > div:nth-child(6)").click()#self.driver.find_element(By.XPATH, "//div[2]/div[2]/div/div/div/div/div/div/div").click()
     
   def page_nav(self,ROWS,COLUMNS,KEYWORD):# This is used to navigate to individual posts on the page
     userNode = node()  
@@ -143,8 +145,8 @@ class InstaScrape():
                 #print("Coordinates(X,Y): {0}, {1}".format(X,Y))
                 #try:
                 bio = InstaScrape.bio_Grab(self)
-                #userNode.total_followers = self.followers_grab()
-                #userNode.total_following = self.following_grab()
+                userNode.total_followers = self.followers_grab()
+                userNode.total_following = self.following_grab()
                 #print(bio)
                 try:
                     self.driver.find_element(By.CSS_SELECTOR, "div.Nnq7C:nth-child({1}) > div:nth-child({0}) > a:nth-child(1)".format(X,Y)).click() #2D Grid(X,Y) - First "nth-child" = Y and Second "nth-child" = X. Third "nth-child" should not change
@@ -180,7 +182,7 @@ class InstaScrape():
                     pass
                 sleep(0.5)
     if trend_related_flag == True:
-        userNode.child_connections[0] = np.append(userNode.child_connections[0],np.asarray(self.returnUsernameList()))
+        #userNode.child_connections[0] = np.append(userNode.child_connections[0],np.asarray(self.returnUsernameList()))
         userNode.child_connections[1] = np.append(userNode.child_connections[1],np.asarray(self.returnLikesList()))
         userNode.child_connections[2] = np.append(userNode.child_connections[2],np.asarray(self.returnCommentList()))
         userNode.child_connections[3] = np.append(userNode.child_connections[3],np.asarray(self.returnFollowerList()))
@@ -210,7 +212,7 @@ class InstaScrape():
       else:
           pass#print("Keyword Not Found")
       if trend_related_flag == True:
-            userNode.child_connections[0] = np.append(userNode.child_connections[0],np.asarray(self.returnUsernameList()))
+            #userNode.child_connections[0] = np.append(userNode.child_connections[0],np.asarray(self.returnUsernameList()))
             userNode.child_connections[1] = np.append(userNode.child_connections[1],np.asarray(self.returnLikesList()))
             userNode.child_connections[2] = np.append(userNode.child_connections[2],np.asarray(self.returnCommentList()))
             userNode.child_connections[3] = np.append(userNode.child_connections[3],np.asarray(self.returnFollowerList()))
@@ -297,12 +299,15 @@ class InstaScrape():
   
   def following_grab(self):
       try:
-          followNumstr = self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(3) > a > span").text #CHANGE 'a' to 'button' IF STOPS WORKING
+          try:
+              followNumstr = self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(3) > span > span").text #CHANGE 'a' to 'button' IF STOPS WORKING
+          except:
+              followNumstr = self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(3) > a > span").text #CHANGE 'a' to 'button' IF STOPS WORKING
           #self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(3) > a").click() 
           if followNumstr.find(",") != -1:
               followNumstr = followNumstr.replace(',','')
           followNum = int(followNumstr)
-          print("Number of following : ", followNum)
+          '''print("Number of following : ", followNum)
           self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(2) > a").click() #Open likes #CHANGE 'a' to 'button' IF STOPS WORKING
           sleep(2)
           source = ""
@@ -333,22 +338,25 @@ class InstaScrape():
           for i in userList:
               if((i in self.allUserList)==False):#Ensures only new usernames are recorded, no repeats
                   self.allUserList.append(i)
-                  self.Following_List.append(i)
+                  self.Following_List.append(i)'''
           return followNum
           
       except:
-          print("No followers found")
+          print("No following found")
           return 0
       
        
   def followers_grab(self):
-      #try:
-          followNumstr = self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(2) > a > span").text #CHANGE 'a' to 'button' IF STOPS WORKING
+      try:
+          try:
+              followNumstr = self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(2) > a > span").text #CHANGE 'a' to 'button' IF STOPS WORKING
+          except:
+              followNumstr = self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(2) > span > span").text
           #self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(2) > a").click() 
           if followNumstr.find(",") != -1:
               followNumstr = followNumstr.replace(',','')
           followNum = int(followNumstr)
-          print("Number of followers : ", followNum)
+          '''print("Number of followers : ", followNum)
           self.driver.find_element(By.CSS_SELECTOR, "#react-root > section > main > div > header > section > ul > li:nth-child(2) > a").click() #Open likes #CHANGE 'a' to 'button' IF STOPS WORKING
           sleep(2)
           source = ""
@@ -379,12 +387,12 @@ class InstaScrape():
           for i in userList:
               if((i in self.allUserList)==False):#Ensures only new usernames are recorded, no repeats
                   self.allUserList.append(i)
-                  self.follower_List.append(i)
+                  self.follower_List.append(i)'''
           return followNum
           
-      #except:
-          #print("No followers found")
-          #return 0
+      except:
+          print("No followers found")
+          return 0
       
   def comment_Grab(self):
       try:
@@ -400,7 +408,15 @@ class InstaScrape():
           return bio
       except:
           pass
-      
+  
+  def profilePic_Grab(self):
+      try:
+          pic = self.driver.find_element(By.CSS_SELECTOR,"#react-root > section > main > div > header > section > div.-vDIg > span").text
+          #print(firstComment)
+          return pic
+      except:
+          pass      
+  
   def trendConnectionID(self,textData,keyword):
       #print(textData)
       textData = str(textData)

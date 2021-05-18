@@ -7,10 +7,13 @@ Created on Mon Apr  5 07:43:35 2021
 import sys
 sys.path.append(".\yolo\.")
 from yoloAPI import yoloAPI
+sys.path.append("..\SNACC_Mapper\TCI\.")
+from Trend_Connection_Identifier import TCI
 
 class CLA():
     def __init__(self):
         self.yolo = yoloAPI()
+        self.TCI_instance = TCI()
         pass
     
     def yoloInvoke(self):
