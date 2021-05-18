@@ -50,10 +50,22 @@
         var accounts = []
         {% for a in accounts %}
             
-            var contents = {username : "{{a.username}}", nickname : "{{a.nickname}}"}
+            var contents = {id : "{{a.id}}", username : "{{a.username}}", nickname : "{{a.nickname}}", bio : "{{a.bio}}", average_likes : "{{a.average_likes}}", num_followers : "{{a.num_followers}}", num_following : "{{a.account_type}}" }
             accounts.push(contents)
         {% endfor %}
+        var connections = []
+        {% for c in connections %}
+            
+            var contents = {to : "{{c.to.id}}", fro : "{{c.fro.id}}", connection_type : "{{c.connection_type}}"}
+
+            connections.push(contents)
+
+        {% endfor %}
         
+
+        
+
+
     </script>
 
     <script type="text/javascript" src= "static/network/demo.js"></script>

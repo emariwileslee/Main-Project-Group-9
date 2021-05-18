@@ -7,7 +7,7 @@ var nodeArray = []
 var edgeArray = []
 var PersonsFollowers = []
 
-$(document).ready(renderGraph(accounts));
+$(document).ready(renderGraph(accounts, connections));
 
 function findSubNetwork(selected, edgeArray){
     var selectedsNetwork = []
@@ -23,58 +23,52 @@ function findSubNetwork(selected, edgeArray){
     return selectedsNetwork;
 }
 
-function createNodeAndID(nodeArray, newNode){
-    if (people_ids[newNode.nodeName] == undefined){
-        people_ids[newNode.nodeName] = id_index
-
-        //size is controlled by value
-        nodeArray.push({id: id_index, label: newNode.nodeName, group: id_index % 5, value: newNode.totalFollowers, data : newNode})
-        id_index += 1 
-    } 
-    return people_ids[newNode.nodeName]
-}
-
-
-function renderGraph(accounts) 
+function renderGraph(accounts, connections ) 
 {
-    console.log(accounts)
-    /*
-    console.log(data);
+    
+    
     var nodeArray = []
     var edgeArray = []
     var PersonsFollowers = []
-
-    //12 used to be 9 for follow-demo.csv.. HAVE TO CHANGE AGAIN IF HEADERS CHANGE ( eventually make it so it just parses until the ":")
-    for (var i = 0; i < data.length; i++){
+    //load accounts/nodes 
+    for (var i = 0; i < accounts.length; i++){
         var newNode = {
-            parentNodeName : data[i].parent_node,
-            nodeName : data[i].username,
-            connectionType : data[i].connection_type,
-            bio : data[i].bio,
-            totalLikes : data[i].total_likes,
-            totalFollowers : data[i].total_followers,
-            totalFollowing : data[i].total_following,
-            profileImgUrl : data[i].profile_img_url,
-            rootPostUrl : data[i].root_post_url
+            id : accounts[i].id,
+            username : accounts[i].username,
+            connectionType : accounts[i].connection_type,
+            bio : accounts[i].bio,
+            average_likes : accounts[i].average_likes,
+            totalFollowers : accounts[i].total_followers,
+            totalFollowing : accounts[i].total_following
         }
-        
+        nodeArray.push({id: newNode.id, label: newNode.username, group: id_index % 5, value: newNode.totalFollowers, data : newNode})
+    }
+    //load connections/edges 
 
-
-        follower = createNodeAndID(nodeArray, newNode);
-        followed  = people_ids[newNode.parentNodeName];
+    for (var i = 0; i < connections.length; i++){
+        follower = connections[i].fro;
+        followed  = connections[i].to;
         
-        if (newNode.connectionType != 'ROOT'){
-            edgeArray.push({from: followed, to: follower})
-        }
+        
+        edgeArray.push({from: followed, to: follower})
         
         if(PersonsFollowers[followed] != undefined){
 
-            PersonsFollowers[followed].push(newNode.nodeName)
+            PersonsFollowers[followed].push(follower)
         } else {
             PersonsFollowers[followed] = []
-            PersonsFollowers[followed].push(newNode.nodeName)
+            PersonsFollowers[followed].push(follower);
         }
     }
+        
+
+
+
+    console.log(edgeArray)
+
+
+
+
 
     var origNodes = new vis.DataSet(nodeArray)
     var nodes  = new vis.DataSet(nodeArray)
@@ -222,9 +216,9 @@ function renderGraph(accounts)
       function makeProfileSummary(nodeId){
             var node = nodeArray[nodeId].data
             var profSummary = "<li id='profsum'>"
-            profSummary += "<h1>" + node.nodeName + "</h1>"
+            profSummary += "<h1>" + node.username + "</h1>"
             profSummary += "<p>Biography: " + node.bio + "</p>"
-            profSummary += "<p id = 'totalLikes'>Average Likes: " + parseInt(node.totalLikes /3)  + "</p>"
+            profSummary += "<p id = 'average_likes'>Average Likes: " + node.average_likes  + "</p>"
             profSummary += "<h3>Followers</h3>"
             profSummary += "<p> Total Followers: " + node.totalFollowers + "</p>"
             profSummary += "<p> Related to Trend: 53% </p>"
@@ -249,5 +243,5 @@ function renderGraph(accounts)
             href: href,
         }).click();
        }
-       */
+       
 }
